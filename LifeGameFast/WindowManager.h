@@ -1,12 +1,12 @@
 #pragma once
 
 #include <map>
-#include "IWorldView.h"
+#include "IView.h"
 
 class WindowManager
 {
 private:
-	std::map<int, IWorldView *> m_viewMap;
+	std::map<int, IView *> m_viewMap;
 
 private:
 	WindowManager();
@@ -24,7 +24,7 @@ public:
 	static WindowManager* getInstance();
 	void init();
 	void startLoop();
-	void registerWindow(int windowId, IWorldView* pWorldView);
+	void registerWindow(int windowId, IView* pWorldView);
 	void unregisterWindow(int windowId);
 
 };

@@ -1,7 +1,7 @@
 #pragma once
 #include "IWorldLogic.h"
-#include "IWorldView.h"
-class WorldView : public IWorldView
+#include "IView.h"
+class WorldView : public IView
 {
 private:
 	/* World Area (LifeGame world) is

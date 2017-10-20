@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "WorldView.h"
 #include "WindowManager.h"
+#include "ControllerView.h"
 
 static const int INVALID_NUM = 9999;
 static const double COLOR_3D_GRID[] = { 0.4, 0.4, 0.4 };
@@ -170,7 +171,7 @@ void WorldView::onUpdate(void)
 	std::chrono::system_clock::time_point  timeNow;;
 	timeNow = std::chrono::system_clock::now();
 	int timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - timePrevious).count();
-	printf("fpsDraw = %lf\n", 1000.0 / timeElapsed);
+	//printf("fpsDraw = %lf\n", 1000.0 / timeElapsed);
 	timePrevious = timeNow;
 #endif
 }
@@ -235,6 +236,8 @@ void WorldView::onClick(int button, int state, int x, int y)
 	if ((GLUT_MIDDLE_BUTTON == button) && (GLUT_DOWN == state)) {
 		initView();
 	}
+
+	ControllerView::getInstance()->setCurrentWorldView(this);
 }
 
 void WorldView::onDrag(int x, int y)
@@ -337,13 +340,24 @@ void WorldView::onWheel(int wheel_number, int direction, int x, int y)
 
 void WorldView::onKeyboard(unsigned char key, int x, int y)
 {
+	int density;
 	switch (key) {
 	case 'a':
-		m_pIWorldLogic->populateCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, 20, 0, 0, 0, 0);
+		density = ControllerView::getInstance()->m_density;
+		m_pIWorldLogic->allocCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, density, 0, 0, 0, 0);
 		glutPostRedisplay();
 		break;
 	case 'c':
-		m_pIWorldLogic->clearAll();
+		m_pIWorldLogic->allocCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, 0, 0, 0, 0, 0);
+		glutPostRedisplay();
+		break;
+	case 'A':
+		density = ControllerView::getInstance()->m_density;
+		m_pIWorldLogic->allocCells(0, WORLD_WIDTH, 0, WORLD_HEIGHT, density, 0, 0, 0, 0);
+		glutPostRedisplay();
+		break;
+	case 'C':
+		m_pIWorldLogic->allocCells(0, WORLD_WIDTH, 0, WORLD_HEIGHT, 0, 0, 0, 0, 0);
 		glutPostRedisplay();
 		break;
 	case 'p':

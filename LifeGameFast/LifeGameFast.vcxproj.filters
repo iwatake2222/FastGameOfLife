@@ -36,7 +36,13 @@
     <ClInclude Include="IWorldLogic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IWorldView.h">
+    <ClInclude Include="ControllerView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldContextManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -57,6 +63,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WindowManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldContextManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

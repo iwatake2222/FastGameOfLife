@@ -1,8 +1,8 @@
 #pragma once
-class IWorldView
+class IView
 {
 public:
-	virtual ~IWorldView() {}
+	virtual ~IView() {}
 	virtual void onUpdate(void) = 0;
 	virtual void onResize(int w, int h) = 0;
 	virtual void onClick(int button, int state, int x, int y) = 0;

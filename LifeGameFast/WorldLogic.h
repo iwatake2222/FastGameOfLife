@@ -62,7 +62,6 @@ public:
 	void setCell(int worldX, int worldY);
 	void clearCell(int worldX, int worldY);
 
-	void populateCells(int x0, int x1, int y0, int y1, int prm0, int prm1, int prm2, int prm3, int prm4);
-	void clearAll();
+	void allocCells(int x0, int x1, int y0, int y1, int prm0, int prm1, int prm2, int prm3, int prm4);
 };
 

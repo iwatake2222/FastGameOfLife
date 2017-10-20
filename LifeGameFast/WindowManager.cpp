@@ -28,7 +28,7 @@ void WindowManager::startLoop()
 	glutMainLoop();
 }
 
-void WindowManager::registerWindow(int windowId, IWorldView* pWorldView)
+void WindowManager::registerWindow(int windowId, IView* pWorldView)
 {
 	m_viewMap[windowId] = pWorldView;
 	// need to register callback functions for each window(display)
@@ -54,7 +54,7 @@ void WindowManager::unregisterWindow(int windowId)
 
 void WindowManager::idle(void)
 {
-	for (std::map<int, IWorldView *>::iterator it = getInstance()->m_viewMap.begin(); it != getInstance()->m_viewMap.end(); ++it) {
+	for (std::map<int, IView *>::iterator it = getInstance()->m_viewMap.begin(); it != getInstance()->m_viewMap.end(); ++it) {
 		glutSetWindow(it->first);
 		glutPostRedisplay();
 	}

@@ -27,13 +27,13 @@ WorldLogic::WorldLogic(int worldWidth, int worldHeight)
 
 WorldLogic::~WorldLogic()
 {
+	m_cmd = CMD_SELF_EXIT;
+	if (m_thread.joinable()) m_thread.join();
+
 	for (int i = 0; i < 2; i++) {
 		delete m_mat[i];
 		m_mat[i] = 0;
 	}
-
-	m_cmd = CMD_SELF_EXIT;
-	if (m_thread.joinable()) m_thread.join();
 }
 
 
@@ -97,33 +97,36 @@ void WorldLogic::clearCell(int worldX, int worldY)
 	}
 }
 
-void WorldLogic::populateCells(int x0, int x1, int y0, int y1, int density, int prm1, int prm2, int prm3, int prm4)
+void WorldLogic::allocCells(int x0, int x1, int y0, int y1, int density, int prm1, int prm2, int prm3, int prm4)
 {
-	if (x0 < 0) x0 = 0;
-	if (x1 >= WORLD_WIDTH) x1 = WORLD_WIDTH - 1;
-	if (y0 < 0) y0 = 0;
-	if (y1 >= WORLD_WIDTH) y1 = WORLD_WIDTH - 1;
-	if (density <= 0) density = 1;
-	if (density > 100) density = 100;
-	int reverseDensity = 100 / density;
 	if (m_isRunning) sendCommand(CMD_VIEW_2_LOGIC_STOP);
-	int *mat = getDisplayMat();
-	for (int y = y0; y < y1; y++) {
-		int yIndex = WORLD_WIDTH * y;
-		for (int x = x0; x < x1; x++) {
-			mat[yIndex + x] = rand() % reverseDensity == 0;
+	if (x0 < 0) x0 = 0;
+	if (x1 >= WORLD_WIDTH) x1 = WORLD_WIDTH;
+	if (y0 < 0) y0 = 0;
+	if (y1 >= WORLD_WIDTH) y1 = WORLD_WIDTH;
+	if (density < 0) density = 0;
+	if (density > 100) density = 100;
+
+	if (density != 0) {
+		int reverseDensity = 100 / density;
+		int *mat = getDisplayMat();
+		for (int y = y0; y < y1; y++) {
+			int yIndex = WORLD_WIDTH * y;
+			for (int x = x0; x < x1; x++) {
+				mat[yIndex + x] = rand() % reverseDensity == 0;
+			}
+		}
+	} else {
+		int *mat = getDisplayMat();
+		for (int y = y0; y < y1; y++) {
+			int yIndex = WORLD_WIDTH * y;
+			for (int x = x0; x < x1; x++) {
+				mat[yIndex + x] = 0;
+			}
 		}
 	}
 }
 
-void WorldLogic::clearAll()
-{
-	if (m_isRunning) sendCommand(CMD_VIEW_2_LOGIC_STOP);
-	int *mat = getDisplayMat();
-	for (int i = 0; i < 2; i++) {
-		memset(m_mat[i], CELL_DEAD, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
-	}
-}
 
 void WorldLogic::loop()
 {
