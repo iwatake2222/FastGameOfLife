@@ -1,5 +1,5 @@
 #pragma once
-#include "IView.h"
+#include "WorldContext.h"
 class ControllerView 
 {
 private:
@@ -8,7 +8,7 @@ private:
 	static const int WINDOW_HEIGHT = 400;
 	int m_windowId;
 	TwBar *m_pBar;
-	IView* m_pSelectedWorldView;
+	WorldContext* m_pCurrentWorldContext;
 
 
 public:
@@ -20,6 +20,8 @@ public:
 	int m_prm2;
 	int m_prm3;
 	int m_prm4;
+
+	int m_viewInterval;
 
 
 private:
@@ -39,15 +41,16 @@ private:
 	static void TW_CALL onClickBtnClear(void * clientData);
 	static void TW_CALL onClickBtnAllocAll(void * clientData);
 	static void TW_CALL onClickBtnClearAll(void * clientData);
+	static void TW_CALL onClickBtnInformation(void * clientData);
 	static void TW_CALL onClickBtnWorldGenerate(void * clientData);
-	static void TW_CALL onClickBtnWorldDelete(void * clientData);
+	static void TW_CALL onClickBtnWorldQuit(void * clientData);
 
 	ControllerView();
 	~ControllerView();
 
 public:
 	static ControllerView* getInstance();
-	void setCurrentWorldView(IView* context);
+	void setCurrentWorldContext(WorldContext* context);
 
 };
 

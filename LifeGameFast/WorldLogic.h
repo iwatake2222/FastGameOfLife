@@ -43,6 +43,9 @@ private:
 	std::mutex m_mutexMat;	// to avoid logic thread update matrix while view thread is copying it
 	std::thread m_thread;
 
+	/* Analysis information */
+	WORLD_INFORMATION m_info;
+
 private:
 	void sendCommand(COMMAND cmd);
 	void loop();
@@ -63,5 +66,8 @@ public:
 	void clearCell(int worldX, int worldY);
 
 	void allocCells(int x0, int x1, int y0, int y1, int prm0, int prm1, int prm2, int prm3, int prm4);
+
+	void getInformation(WORLD_INFORMATION *info);
+	void resetInformation();
 };
 

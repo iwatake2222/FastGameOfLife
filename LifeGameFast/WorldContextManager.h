@@ -10,6 +10,6 @@ private:
 public:
 	static WorldContextManager* getInstance();
 	void generateWorld();
-	void deleteWorld(IView* view);
+	void deleteWorld(WorldContext* pContext);
 };
 

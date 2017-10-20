@@ -151,11 +151,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AnalView.h" />
     <ClInclude Include="ControllerView.h" />
     <ClInclude Include="IWorldLogic.h" />
     <ClInclude Include="IView.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Values.h" />
     <ClInclude Include="WindowManager.h" />
     <ClInclude Include="WorldContext.h" />
     <ClInclude Include="WorldContextManager.h" />
@@ -163,6 +165,7 @@
     <ClInclude Include="WorldView.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AnalView.cpp" />
     <ClCompile Include="ControllerView.cpp" />
     <ClCompile Include="LifeGameFast.cpp" />
     <ClCompile Include="stdafx.cpp">

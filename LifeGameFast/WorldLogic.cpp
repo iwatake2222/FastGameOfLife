@@ -23,6 +23,10 @@ WorldLogic::WorldLogic(int worldWidth, int worldHeight)
 	/* start main thread now*/
 	std::thread t(&WorldLogic::loop, this);
 	m_thread.swap(t);
+
+	memset(&m_info, 0, sizeof(m_info));
+	m_info.calcTime = 999;
+	//m_info.generation = 1;
 }
 
 WorldLogic::~WorldLogic()
@@ -103,7 +107,7 @@ void WorldLogic::allocCells(int x0, int x1, int y0, int y1, int density, int prm
 	if (x0 < 0) x0 = 0;
 	if (x1 >= WORLD_WIDTH) x1 = WORLD_WIDTH;
 	if (y0 < 0) y0 = 0;
-	if (y1 >= WORLD_WIDTH) y1 = WORLD_WIDTH;
+	if (y1 >= WORLD_HEIGHT) y1 = WORLD_HEIGHT;
 	if (density < 0) density = 0;
 	if (density > 100) density = 100;
 
@@ -159,6 +163,7 @@ void WorldLogic::loop()
 		}
 
 		if (m_isRunning || cmd == CMD_VIEW_2_LOGIC_STEP) {
+			m_info.status = 1;
 			gameLogic();
 
 			/* swap matrix (calc - display) */
@@ -170,17 +175,25 @@ void WorldLogic::loop()
 			if (cmd == CMD_VIEW_2_LOGIC_STEP) {
 				m_isCmdCompleted = true;
 			}
+		} else {
+			m_info.status = 0;
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		timeEnd = std::chrono::system_clock::now();
 		int timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart).count();
+		m_info.calcTime = timeElapsed;
 		//printf("fpsCalc = %lf\n", 1000.0 / timeElapsed);
 	}
 }
 
 void WorldLogic::gameLogic()
 {
+	WORLD_INFORMATION info = { 0 };
+	info.generation = m_info.generation + 1;
+	info.status = m_info.status;
+	info.calcTime = m_info.calcTime;
+
 	for (int y = 0; y < WORLD_HEIGHT; y++) {
 		for (int x = 0; x < WORLD_WIDTH; x++) {
 			int cnt = 0;
@@ -201,17 +214,36 @@ void WorldLogic::gameLogic()
 				if (cnt == 3) {
 					// birth
 					m_mat[m_matIdNew][WORLD_WIDTH * y + x] = 1;
+					info.numAlive++;
+					info.numBirth++;
 				} else {
+					// keep dead
 					m_mat[m_matIdNew][WORLD_WIDTH * y + x] = 0;
 				}
 			} else {
 				if (cnt <= 2 || cnt >= 5) {
 					// die
 					m_mat[m_matIdNew][WORLD_WIDTH * y + x] = 0;
+					info.numDie++;
 				} else {
-					m_mat[m_matIdNew][WORLD_WIDTH * y + x] = 1;
+					// keep alive (age++)
+					m_mat[m_matIdNew][WORLD_WIDTH * y + x] = m_mat[m_matIdOld][WORLD_WIDTH * y + x] + 1;
+					info.numAlive++;
 				}
 			}
 		}
 	}
+
+	m_info = info;
+}
+
+void WorldLogic::getInformation(WORLD_INFORMATION *info)
+{
+	*info = m_info;
+}
+
+void WorldLogic::resetInformation()
+{
+	memset(&m_info, 0, sizeof(m_info));
+	m_info.calcTime = 999;
 }

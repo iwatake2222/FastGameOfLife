@@ -13,6 +13,7 @@ public:
 
 	IWorldLogic* m_pLogic;
 	IView* m_pView;
+	IView* m_pAnalView;
 
 public:
 	WorldContext();

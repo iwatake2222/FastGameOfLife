@@ -1,19 +1,21 @@
 #include "stdafx.h"
 #include "ControllerView.h"
 #include "WorldContextManager.h"
-
+#include "Values.h"
 ControllerView::ControllerView()
 {
-	m_pSelectedWorldView = NULL;
+	m_pCurrentWorldContext = NULL;
 
-	m_worldWidth = 512;
-	m_worldHeight = 512;
+	m_worldWidth = DEFAULT_WORLD_WIDTH;
+	m_worldHeight = DEFAULT_WORLD_HEIGHT;
 	m_worldAlgorithm = ALGORITHM::NORMAL;
-	m_density = 20;
+	m_density = DEFAULT_CELLS_DENSITY;
 	m_prm1 = 0;
 	m_prm2 = 0;
 	m_prm3 = 0;
 	m_prm4 = 0;
+
+	m_viewInterval = 1;
 
 	initLibrary();
 	initUI();
@@ -31,9 +33,9 @@ ControllerView* ControllerView::getInstance()
 	return &s_controllerView;
 }
 
-void ControllerView::setCurrentWorldView(IView* context)
+void ControllerView::setCurrentWorldContext(WorldContext* context)
 {
-	m_pSelectedWorldView = context;
+	m_pCurrentWorldContext = context;
 }
 
 void ControllerView::onUpdate(void)
@@ -70,9 +72,13 @@ int ControllerView::MouseMotionCB(int mouseX, int mouseY)
 
 int ControllerView::KeyboardCB(unsigned char glutKey, int mouseX, int mouseY)
 {
-	if (getInstance()->m_pSelectedWorldView)
-		getInstance()->m_pSelectedWorldView->onKeyboard(glutKey, mouseX, mouseY);
 	TwSetCurrentWindow(glutGetWindow());
+	if (glutKey != 'g') {
+		if (getInstance()->m_pCurrentWorldContext && getInstance()->m_pCurrentWorldContext->m_pView)
+			getInstance()->m_pCurrentWorldContext->m_pView->onKeyboard(glutKey, mouseX, mouseY);
+	} else {
+		new WorldContext();
+	}
 	return TwEventKeyboardGLUT(glutKey, mouseX, mouseY);
 }
 
@@ -110,53 +116,63 @@ void ControllerView::initLibrary()
 void TW_CALL ControllerView::onClickBtnStartStop(void * clientData)
 {
 	ControllerView* pControllerView = (ControllerView*)clientData;
-	if(pControllerView->m_pSelectedWorldView)
-		pControllerView->m_pSelectedWorldView->onKeyboard('p', 0, 0);
+	if(pControllerView->m_pCurrentWorldContext && getInstance()->m_pCurrentWorldContext->m_pView)
+		pControllerView->m_pCurrentWorldContext->m_pView->onKeyboard('p', 0, 0);
 }
 
 void TW_CALL ControllerView::onClickBtnStep(void * clientData)
 {
 	ControllerView* pControllerView = (ControllerView*)clientData;
-	if (pControllerView->m_pSelectedWorldView)
-		pControllerView->m_pSelectedWorldView->onKeyboard('s', 0, 0);
+	if (pControllerView->m_pCurrentWorldContext && getInstance()->m_pCurrentWorldContext->m_pView)
+		pControllerView->m_pCurrentWorldContext->m_pView->onKeyboard('s', 0, 0);
 }
 
 void TW_CALL ControllerView::onClickBtnAlloc(void * clientData)
 {
 	ControllerView* pControllerView = (ControllerView*)clientData;
-	if (pControllerView->m_pSelectedWorldView)
-		pControllerView->m_pSelectedWorldView->onKeyboard('a', 0, 0);
+	if (pControllerView->m_pCurrentWorldContext && getInstance()->m_pCurrentWorldContext->m_pView)
+		pControllerView->m_pCurrentWorldContext->m_pView->onKeyboard('a', 0, 0);
 }
 
 void TW_CALL ControllerView::onClickBtnClear(void * clientData)
 {
 	ControllerView* pControllerView = (ControllerView*)clientData;
-	if (pControllerView->m_pSelectedWorldView)
-		pControllerView->m_pSelectedWorldView->onKeyboard('c', 0, 0);
+	if (pControllerView->m_pCurrentWorldContext && getInstance()->m_pCurrentWorldContext->m_pView)
+		pControllerView->m_pCurrentWorldContext->m_pView->onKeyboard('c', 0, 0);
 }
 
 void TW_CALL ControllerView::onClickBtnAllocAll(void * clientData)
 {
 	ControllerView* pControllerView = (ControllerView*)clientData;
-	if (pControllerView->m_pSelectedWorldView)
-		pControllerView->m_pSelectedWorldView->onKeyboard('A', 0, 0);
+	if (pControllerView->m_pCurrentWorldContext && getInstance()->m_pCurrentWorldContext->m_pView)
+		pControllerView->m_pCurrentWorldContext->m_pView->onKeyboard('A', 0, 0);
 }
 
 void TW_CALL ControllerView::onClickBtnClearAll(void * clientData)
 {
 	ControllerView* pControllerView = (ControllerView*)clientData;
-	if (pControllerView->m_pSelectedWorldView)
-		pControllerView->m_pSelectedWorldView->onKeyboard('C', 0, 0);
+	if (pControllerView->m_pCurrentWorldContext && getInstance()->m_pCurrentWorldContext->m_pView)
+		pControllerView->m_pCurrentWorldContext->m_pView->onKeyboard('C', 0, 0);
+}
+
+void TW_CALL ControllerView::onClickBtnInformation(void * clientData)
+{
+	ControllerView* pControllerView = (ControllerView*)clientData;
+	if (pControllerView->m_pCurrentWorldContext && getInstance()->m_pCurrentWorldContext->m_pView)
+		pControllerView->m_pCurrentWorldContext->m_pView->onKeyboard('i', 0, 0);
 }
 
 void TW_CALL ControllerView::onClickBtnWorldGenerate(void * clientData)
 {
-	WorldContextManager::getInstance()->generateWorld();
+	new WorldContext();
 }
 
-void TW_CALL ControllerView::onClickBtnWorldDelete(void * clientData)
+void TW_CALL ControllerView::onClickBtnWorldQuit(void * clientData)
 {
-	WorldContextManager::getInstance()->deleteWorld(getInstance()->m_pSelectedWorldView);
+	if (getInstance()->m_pCurrentWorldContext) {
+		delete getInstance()->m_pCurrentWorldContext;
+		getInstance()->m_pCurrentWorldContext = NULL;
+	}
 }
 
 void ControllerView::initUI()
@@ -177,9 +193,14 @@ void ControllerView::initUI()
 	TwEnumVal algorithmEV[] = { { NORMAL, "Normal" },{ NEW1, "New1" },{ NEW2, "New2" } };
 	TwType algorithmType = TwDefineEnum("AlgorithmType", algorithmEV, ALGORITHM_NUM);
 	TwAddVarRW(m_pBar, "Algorithm", algorithmType, &m_worldAlgorithm, " keyIncr='<' keyDecr='>' help='Change algorithm.' group='World Parameters' ");
+
 	TwAddSeparator(m_pBar, NULL, NULL);
-	TwAddButton(m_pBar, "btnWorldGenerate", ControllerView::onClickBtnWorldGenerate, this, " label='Generate' group='World Parameters' ");
-	TwAddButton(m_pBar, "btnWorldDelete", ControllerView::onClickBtnWorldDelete, this, " label='Delete' group='World Parameters' ");
+	TwAddButton(m_pBar, "btnInformation", ControllerView::onClickBtnInformation, this, " label='show Information [i]' group='View' ");
+	TwAddVarRW(m_pBar, "viewInterval", TW_TYPE_INT32, &m_viewInterval, "min=1 max=100 step=1 label='interval' group='View' ");
+
+	TwAddSeparator(m_pBar, NULL, NULL);
+	TwAddButton(m_pBar, "btnWorldGenerate", ControllerView::onClickBtnWorldGenerate, this, " label='Generate [g]' group='World Parameters' ");
+	TwAddButton(m_pBar, "btnWorldQuit", ControllerView::onClickBtnWorldQuit, this, " label='Quit [q]' group='World Parameters' ");
 
 	TwAddButton(m_pBar, "btnStartStop", ControllerView::onClickBtnStartStop, this, " label='Play [p]' group='Operations' ");
 	TwAddButton(m_pBar, "btnStep", ControllerView::onClickBtnStep, this, " label='Step [s]' group='Operations' ");

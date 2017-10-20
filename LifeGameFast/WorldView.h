@@ -1,6 +1,6 @@
 #pragma once
-#include "IWorldLogic.h"
-#include "IView.h"
+#include "WorldContext.h"
+
 class WorldView : public IView
 {
 private:
@@ -15,8 +15,8 @@ private:
 	double WORLD_WIDTH_MARGIN;
 	double WORLD_HEIGHT_MARGIN;
 
-	/* interface for logic instance for this view */
-	IWorldLogic *m_pIWorldLogic;
+	/* pointer to the parent context which contains me */
+	WorldContext *m_pContext;
 
 	/* current visible world area
 	* changed when mouse drag/wheel, resize
@@ -44,6 +44,7 @@ private:
 
 	int m_windowId;
 	
+	int m_intervalCnt;
 
 private:
 	void initOpenGL();
@@ -53,7 +54,7 @@ private:
 	void convertPosWindow2World(int x, int y, int* worldX, int* worldY);
 
 public:
-	WorldView(int worldWidth, int worldHeight, IWorldLogic* pIWorldLogic);
+	WorldView(WorldContext* pContext);
 	~WorldView();
 
 	void onUpdate(void);

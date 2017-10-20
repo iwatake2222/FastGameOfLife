@@ -19,19 +19,19 @@ WorldContextManager* WorldContextManager::getInstance()
 
 void WorldContextManager::generateWorld()
 {
-	m_contextVector.push_back(new WorldContext());
+	//m_contextVector.push_back(new WorldContext());
 }
 
-void WorldContextManager::deleteWorld(IView* view)
+void WorldContextManager::deleteWorld(WorldContext* pContext)
 {
-	for (std::vector<WorldContext*>::iterator it = m_contextVector.begin(); it != m_contextVector.end(); ) {
-		if ((*it)->m_pView == view) {
-			delete (*it);
-			ControllerView::getInstance()->setCurrentWorldView(NULL);
-			
-			it = m_contextVector.erase(it);
-		} else {
-			++it;
-		}
-	}
+	//for (std::vector<WorldContext*>::iterator it = m_contextVector.begin(); it != m_contextVector.end(); ) {
+	//	if ((*it) == pContext) {
+	//		delete (*it);
+	//		ControllerView::getInstance()->setCurrentWorldContext(NULL);
+	//		
+	//		it = m_contextVector.erase(it);
+	//	} else {
+	//		++it;
+	//	}
+	//}
 }

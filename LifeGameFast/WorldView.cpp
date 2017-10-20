@@ -2,24 +2,22 @@
 #include "WorldView.h"
 #include "WindowManager.h"
 #include "ControllerView.h"
+#include "AnalView.h"
+#include "Values.h"
 
-static const int INVALID_NUM = 9999;
-static const double COLOR_3D_GRID[] = { 0.4, 0.4, 0.4 };
-static const double COLOR_3D_CELL_ALIVE[] = { 0.8, 0.2, 0.2 };
-static const double COLOR_3D_CELL_DEAD[] = { 0.0, 0.0, 0.0 };
 
-WorldView::WorldView(int worldWidth, int worldHeight, IWorldLogic* pIWorldLogic)
+WorldView::WorldView(WorldContext* pContext)
 {
 	/* fixed during lifespan */
-	WORLD_WIDTH = worldWidth;
-	WORLD_HEIGHT = worldHeight;
+	WORLD_WIDTH = pContext->WORLD_WIDTH;
+	WORLD_HEIGHT = pContext->WORLD_HEIGHT;
 	WORLD_WIDTH_MARGIN = WORLD_WIDTH  * 0.1;
 	WORLD_HEIGHT_MARGIN = WORLD_HEIGHT * 0.1;
-	m_pIWorldLogic = pIWorldLogic;
+	m_pContext = pContext;
 
 	/* initial window size */
-	m_windowWidth = 640;
-	m_windowHeight = 480;
+	m_windowWidth = DEFAULT_WINDOW_WIDTH;
+	m_windowHeight = DEFAULT_WINDOW_HEIGHT;
 
 	m_worldVisibleX0 = -WORLD_WIDTH_MARGIN;
 	m_worldVisibleX1 = WORLD_WIDTH + WORLD_WIDTH_MARGIN;
@@ -30,6 +28,8 @@ WorldView::WorldView(int worldWidth, int worldHeight, IWorldLogic* pIWorldLogic)
 	m_previousLDragYWorld = INVALID_NUM;
 	m_previousRDragX = INVALID_NUM;
 	m_previousRDragY = INVALID_NUM;
+
+	m_intervalCnt = 0;
 
 	initOpenGL();
 	initView();
@@ -44,9 +44,10 @@ WorldView::~WorldView()
 
 void WorldView::initOpenGL()
 {
+	glutInitWindowPosition(DEFAULT_WINDOW_X, DEFAULT_WINDOW_Y);
 	glutInitWindowSize(m_windowWidth, m_windowHeight);
 	glutInitDisplayMode(GLUT_RGBA);
-	m_windowId = glutCreateWindow("aaa");
+	m_windowId = glutCreateWindow("The Game of Life");
 	WindowManager::getInstance()->registerWindow(m_windowId, this);
 }
 
@@ -124,22 +125,39 @@ void WorldView::drawCells()
 #define DRAW_CELLS_SAFE
 #ifdef DRAW_CELLS_SAFE
 	int *mat = new int[WORLD_WIDTH * WORLD_HEIGHT];
-	m_pIWorldLogic->copyDisplayMat(mat);
+	m_pContext->m_pLogic->copyDisplayMat(mat);
 #else
 	/* without exclusive control for high speed performance */
-	int *mat = m_pIWorldLogic->getDisplayMat();
+	int *mat = m_pContext->m_pLogic->getDisplayMat();
 #endif
 
 	glBegin(GL_QUADS);
 	/* draw only visible area */
+	IWorldLogic::WORLD_INFORMATION info;
+	m_pContext->m_pLogic->getInformation(&info);
+	int generation = info.generation;
 	for (int y = (int)fmax(m_worldVisibleY0, 0); y < (int)fmin(m_worldVisibleY1, WORLD_HEIGHT); y++) {
 		int yIndex = WORLD_WIDTH * y;
 		for (int x = (int)fmax(m_worldVisibleX0, 0); x < (int)fmin(m_worldVisibleX1, WORLD_WIDTH); x++) {
 			if (mat[yIndex + x] == 0) {
-				glColor3dv(COLOR_3D_CELL_DEAD);
+				glColor3dv(COLOR_3D_DEAD);
+#if 1
+			} else if (generation == 0 || (mat[yIndex + x]*100) / generation < 20) {
+				glColor3dv(COLOR_3D_ALIVE0);
+			} else if ((mat[yIndex + x] * 100) / generation < 40) {
+				glColor3dv(COLOR_3D_ALIVE1);
+			} else if ((mat[yIndex + x] * 100) / generation < 60) {
+				glColor3dv(COLOR_3D_ALIVE2);
+			} else if ((mat[yIndex + x] * 100) / generation < 80) {
+				glColor3dv(COLOR_3D_ALIVE3);
+			} else {
+				glColor3dv(COLOR_3D_ALIVE4);
+			}
+#else
 			} else {
 				glColor3dv(COLOR_3D_CELL_ALIVE);
 			}
+#endif
 			glVertex2d(x + 0, y + 0);
 			glVertex2d(x + 1, y + 0);
 			glVertex2d(x + 1, y + 1);
@@ -155,6 +173,8 @@ void WorldView::drawCells()
 
 void WorldView::onUpdate(void)
 {
+	if (m_intervalCnt++ % ControllerView::getInstance()->m_viewInterval != 0) return;
+
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glLoadIdentity();
@@ -194,6 +214,8 @@ void WorldView::onResize(int w, int h)
 
 	m_windowWidth = w;
 	m_windowHeight = h;
+
+	ControllerView::getInstance()->setCurrentWorldContext(m_pContext);
 }
 
 void WorldView::convertPosWindow2World(int x, int y, int* worldX, int* worldY)
@@ -216,7 +238,7 @@ void WorldView::onClick(int button, int state, int x, int y)
 		convertPosWindow2World(x, y, &worldX, &worldY);
 		if ((m_previousLDragXWorld == worldX) && (m_previousLDragYWorld == worldY)) {
 			/* on clicked, toggle the clicked cell */
-			m_pIWorldLogic->toggleCell(worldX, worldY);
+			m_pContext->m_pLogic->toggleCell(worldX, worldY);
 			glutPostRedisplay();
 		}
 		m_previousLDragXWorld = INVALID_NUM;
@@ -237,7 +259,7 @@ void WorldView::onClick(int button, int state, int x, int y)
 		initView();
 	}
 
-	ControllerView::getInstance()->setCurrentWorldView(this);
+	ControllerView::getInstance()->setCurrentWorldContext(m_pContext);
 }
 
 void WorldView::onDrag(int x, int y)
@@ -246,7 +268,7 @@ void WorldView::onDrag(int x, int y)
 		/* left button drag to draw cells */
 		int worldX = 0, worldY = 0;
 		convertPosWindow2World(x, y, &worldX, &worldY);
-		m_pIWorldLogic->setCell(worldX, worldY);
+		m_pContext->m_pLogic->setCell(worldX, worldY);
 		glutPostRedisplay();
 	}
 
@@ -344,34 +366,43 @@ void WorldView::onKeyboard(unsigned char key, int x, int y)
 	switch (key) {
 	case 'a':
 		density = ControllerView::getInstance()->m_density;
-		m_pIWorldLogic->allocCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, density, 0, 0, 0, 0);
+		m_pContext->m_pLogic->allocCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, density, 0, 0, 0, 0);
 		glutPostRedisplay();
 		break;
 	case 'c':
-		m_pIWorldLogic->allocCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, 0, 0, 0, 0, 0);
+		m_pContext->m_pLogic->allocCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, 0, 0, 0, 0, 0);
 		glutPostRedisplay();
 		break;
 	case 'A':
 		density = ControllerView::getInstance()->m_density;
-		m_pIWorldLogic->allocCells(0, WORLD_WIDTH, 0, WORLD_HEIGHT, density, 0, 0, 0, 0);
+		m_pContext->m_pLogic->allocCells(0, WORLD_WIDTH, 0, WORLD_HEIGHT, density, 0, 0, 0, 0);
+		m_pContext->m_pLogic->resetInformation();
 		glutPostRedisplay();
 		break;
 	case 'C':
-		m_pIWorldLogic->allocCells(0, WORLD_WIDTH, 0, WORLD_HEIGHT, 0, 0, 0, 0, 0);
+		m_pContext->m_pLogic->allocCells(0, WORLD_WIDTH, 0, WORLD_HEIGHT, 0, 0, 0, 0, 0);
+		m_pContext->m_pLogic->resetInformation();
 		glutPostRedisplay();
 		break;
 	case 'p':
-		m_pIWorldLogic->toggleRun();
+		m_pContext->m_pLogic->toggleRun();
 		break;
 	case 's':
-		m_pIWorldLogic->stepRun();
+		m_pContext->m_pLogic->stepRun();
 		break;
-	case 'w':
-		WorldView *pView;
-		pView = new WorldView(WORLD_WIDTH, WORLD_WIDTH, m_pIWorldLogic);
+	case 'i':
+		if (m_pContext->m_pAnalView == NULL) {
+			new AnalView(m_pContext);
+		} else {
+			delete m_pContext->m_pAnalView;
+		}
+		break;
+	case 'g':
+		new WorldContext();
 		break;
 	case 'q':
-		delete this;
+		ControllerView::getInstance()->setCurrentWorldContext(NULL);
+		delete m_pContext;
 		break;
 	default:
 		break;
