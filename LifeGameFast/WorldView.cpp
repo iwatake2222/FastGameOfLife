@@ -133,7 +133,7 @@ void WorldView::drawCells()
 
 	glBegin(GL_QUADS);
 	/* draw only visible area */
-	IWorldLogic::WORLD_INFORMATION info;
+	ILogic::WORLD_INFORMATION info;
 	m_pContext->m_pLogic->getInformation(&info);
 	int generation = info.generation;
 	for (int y = (int)fmax(m_worldVisibleY0, 0); y < (int)fmin(m_worldVisibleY1, WORLD_HEIGHT); y++) {

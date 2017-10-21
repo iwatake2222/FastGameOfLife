@@ -1,6 +1,6 @@
 #pragma once
-#include "IWorldLogic.h"
-class WorldLogic : public IWorldLogic
+#include "ILogic.h"
+class LogicBase : public ILogic
 {
 private:
 	/* commands from public function to internal thread */
@@ -16,7 +16,7 @@ private:
 	const static int CELL_ALIVE = 1;
 
 
-private:
+protected:
 	/* World Area (LifeGame world) is
 	* x = 0 ~ WORLD_WIDTH - 1, y = 0 ~ WORLD_HEIGHT - 1
 	* bottm left is (0,0), top right is (WORLD_WIDTH - 1, WORLD_HEIGHT - 1)
@@ -47,13 +47,15 @@ private:
 	WORLD_INFORMATION m_info;
 
 private:
+	virtual void gameLogic();
+
+private:
 	void sendCommand(COMMAND cmd);
-	void loop();
-	void gameLogic();
+	void threadFunc();
 
 public:
-	WorldLogic(int worldWidth, int worldHeigh);
-	virtual ~WorldLogic();
+	LogicBase(int worldWidth, int worldHeigh);
+	virtual ~LogicBase();
 
 	void startRun();
 	void stopRun();
@@ -71,5 +73,9 @@ public:
 
 	void getInformation(WORLD_INFORMATION *info);
 	void resetInformation();
+
+public:
+	// todo: should make factory or manager class
+	static ILogic* generateLogic(int algorithm, int width, int height);
 };
 

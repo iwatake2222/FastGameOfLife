@@ -1,7 +1,7 @@
 #pragma once
 #include "Values.h"
 #include "IView.h"
-#include "IWorldLogic.h"
+#include "ILogic.h"
 class WorldContext
 {
 public:
@@ -12,13 +12,13 @@ public:
 	int WORLD_WIDTH;
 	int WORLD_HEIGHT;
 
-	IWorldLogic* m_pLogic;
+	ILogic* m_pLogic;
 	IView* m_pView;
 	IView* m_pAnalView;
 
 public:
 	WorldContext();
-	WorldContext(int width, int height, int algorithm = ALGORITHM_NORMAL, int windowX = DEFAULT_WINDOW_X, int windowY = DEFAULT_WINDOW_Y, int windowWidth = DEFAULT_WINDOW_WIDTH, int windowHeight = DEFAULT_WINDOW_HEIGHT);
+	WorldContext(int width, int height, ALGORITHM algorithm = ALGORITHM_AUTO, int windowX = DEFAULT_WINDOW_X, int windowY = DEFAULT_WINDOW_Y, int windowWidth = DEFAULT_WINDOW_WIDTH, int windowHeight = DEFAULT_WINDOW_HEIGHT);
 	~WorldContext();
 
 	static WorldContext* generateFromFile();

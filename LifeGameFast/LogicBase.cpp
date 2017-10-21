@@ -1,9 +1,13 @@
 
 #include "stdafx.h"
-#include "WorldLogic.h"
+#include "Values.h"
+#include "LogicBase.h"
+#include "LogicNormal.h"
+#include "LogicNormalMP.h"
+#include "LogicNormalNonTorus.h"
+#include "LogicNormalNonTorusMP.h"
 
-
-WorldLogic::WorldLogic(int worldWidth, int worldHeight)
+LogicBase::LogicBase(int worldWidth, int worldHeight)
 {
 	WORLD_WIDTH = worldWidth;
 	WORLD_HEIGHT = worldHeight;
@@ -14,22 +18,21 @@ WorldLogic::WorldLogic(int worldWidth, int worldHeight)
 	
 	m_matIdOld = 0;
 	m_matIdNew = 1;
-
 	for (int i = 0; i < 2; i++) {
 		m_mat[i] = new int[WORLD_WIDTH * WORLD_HEIGHT];
 		memset(m_mat[i], 0x00, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
 	}
 
 	/* start main thread now*/
-	std::thread t(&WorldLogic::loop, this);
+	std::thread t(&LogicBase::threadFunc, this);
 	m_thread.swap(t);
 
 	memset(&m_info, 0, sizeof(m_info));
 	m_info.calcTime = 999;
-	//m_info.generation = 1;
+	m_info.generation = 1;
 }
 
-WorldLogic::~WorldLogic()
+LogicBase::~LogicBase()
 {
 	m_cmd = CMD_SELF_EXIT;
 	if (m_thread.joinable()) m_thread.join();
@@ -38,10 +41,10 @@ WorldLogic::~WorldLogic()
 		delete m_mat[i];
 		m_mat[i] = 0;
 	}
+	
 }
 
-
-void WorldLogic::sendCommand(COMMAND cmd) {
+void LogicBase::sendCommand(COMMAND cmd) {
 	m_isCmdCompleted = false;
 	m_cmd = cmd;
 	// wait until logic thread completes the command
@@ -49,17 +52,17 @@ void WorldLogic::sendCommand(COMMAND cmd) {
 	while (!m_isCmdCompleted) std::this_thread::yield();
 }
 
-void WorldLogic::startRun()
+void LogicBase::startRun()
 {
 	sendCommand(CMD_VIEW_2_LOGIC_START);
 }
 
-void WorldLogic::stopRun()
+void LogicBase::stopRun()
 {
 	sendCommand(CMD_VIEW_2_LOGIC_STOP);
 }
 
-void WorldLogic::toggleRun()
+void LogicBase::toggleRun()
 {
 	if (m_isRunning) {
 		sendCommand(CMD_VIEW_2_LOGIC_STOP);
@@ -68,23 +71,23 @@ void WorldLogic::toggleRun()
 	}
 }
 
-void WorldLogic::stepRun()
+void LogicBase::stepRun()
 {
 	sendCommand(CMD_VIEW_2_LOGIC_STEP);
 }
 
-int* WorldLogic::getDisplayMat() {
+int* LogicBase::getDisplayMat() {
 	/* this is unsafe. the matrix retrieved might be updated while using */
 	return m_mat[m_matIdOld];
 }
 
-void WorldLogic::copyDisplayMat(int* matOut) {
+void LogicBase::copyDisplayMat(int* matOut) {
 	m_mutexMat.lock();
 	memcpy(matOut, m_mat[m_matIdOld], sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
 	m_mutexMat.unlock();
 }
 
-void WorldLogic::toggleCell(int worldX, int worldY)
+void LogicBase::toggleCell(int worldX, int worldY)
 {
 	if (m_isRunning) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	int *mat = getDisplayMat();
@@ -93,7 +96,7 @@ void WorldLogic::toggleCell(int worldX, int worldY)
 	}
 }
 
-void WorldLogic::setCell(int worldX, int worldY)
+void LogicBase::setCell(int worldX, int worldY)
 {
 	if (m_isRunning) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	int *mat = getDisplayMat();
@@ -102,7 +105,7 @@ void WorldLogic::setCell(int worldX, int worldY)
 	}
 }
 
-void WorldLogic::clearCell(int worldX, int worldY)
+void LogicBase::clearCell(int worldX, int worldY)
 {
 	if (m_isRunning) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	int *mat = getDisplayMat();
@@ -111,7 +114,7 @@ void WorldLogic::clearCell(int worldX, int worldY)
 	}
 }
 
-void WorldLogic::allocCells(int x0, int x1, int y0, int y1, int density, int prm1, int prm2, int prm3, int prm4)
+void LogicBase::allocCells(int x0, int x1, int y0, int y1, int density, int prm1, int prm2, int prm3, int prm4)
 {
 	if (m_isRunning) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	if (x0 < 0) x0 = 0;
@@ -142,7 +145,7 @@ void WorldLogic::allocCells(int x0, int x1, int y0, int y1, int density, int prm
 }
 
 
-void WorldLogic::loop()
+void LogicBase::threadFunc()
 {
 	bool isExit = false;
 	while (!isExit) {
@@ -197,63 +200,44 @@ void WorldLogic::loop()
 	}
 }
 
-void WorldLogic::gameLogic()
-{
-	WORLD_INFORMATION info = { 0 };
-	info.generation = m_info.generation + 1;
-	info.status = m_info.status;
-	info.calcTime = m_info.calcTime;
-
-	for (int y = 0; y < WORLD_HEIGHT; y++) {
-		for (int x = 0; x < WORLD_WIDTH; x++) {
-			int cnt = 0;
-			for (int yy = y - 1; yy <= y + 1; yy++) {
-				int roundY = yy;
-				if (roundY >= WORLD_HEIGHT) roundY = 0;
-				if (roundY < 0) roundY = WORLD_HEIGHT - 1;
-				for (int xx = x - 1; xx <= x + 1; xx++) {
-					int roundX = xx;
-					if (roundX >= WORLD_WIDTH) roundX = 0;
-					if (roundX < 0) roundX = WORLD_WIDTH - 1;
-					if (m_mat[m_matIdOld][WORLD_WIDTH * roundY + roundX] != 0) {
-						cnt++;
-					}
-				}
-			}
-			if (m_mat[m_matIdOld][WORLD_WIDTH * y + x] == 0) {
-				if (cnt == 3) {
-					// birth
-					m_mat[m_matIdNew][WORLD_WIDTH * y + x] = 1;
-					info.numAlive++;
-					info.numBirth++;
-				} else {
-					// keep dead
-					m_mat[m_matIdNew][WORLD_WIDTH * y + x] = 0;
-				}
-			} else {
-				if (cnt <= 2 || cnt >= 5) {
-					// die
-					m_mat[m_matIdNew][WORLD_WIDTH * y + x] = 0;
-					info.numDie++;
-				} else {
-					// keep alive (age++)
-					m_mat[m_matIdNew][WORLD_WIDTH * y + x] = m_mat[m_matIdOld][WORLD_WIDTH * y + x] + 1;
-					info.numAlive++;
-				}
-			}
-		}
-	}
-
-	m_info = info;
-}
-
-void WorldLogic::getInformation(WORLD_INFORMATION *info)
+void LogicBase::getInformation(WORLD_INFORMATION *info)
 {
 	*info = m_info;
 }
 
-void WorldLogic::resetInformation()
+void LogicBase::resetInformation()
 {
 	memset(&m_info, 0, sizeof(m_info));
 	m_info.calcTime = 999;
 }
+
+
+void LogicBase::gameLogic()
+{
+	for (int y = 0; y < WORLD_HEIGHT; y++) {
+		for (int x = 0; x < WORLD_WIDTH; x++) {
+			m_mat[m_matIdNew][WORLD_WIDTH * y + x] = m_mat[m_matIdOld][WORLD_WIDTH * y + x];
+		}
+	}
+}
+
+ILogic* LogicBase::generateLogic(int algorithm, int width, int height)
+{
+	switch (algorithm) {
+	case ALGORITHM_NORMAL:
+		return new LogicNormal(width, height);
+	case ALGORITHM_NORMAL_MP:
+		return new LogicNormalMP(width, height);
+	case ALGORITHM_NORMAL_CUDA:
+		return new LogicNormal(width, height);
+	case ALGORITHM_NORMAL_NON_TORUS:
+		return new LogicNormalNonTorus(width, height);
+	case ALGORITHM_NORMAL_NON_TORUS_MP:
+		return new LogicNormalNonTorusMP(width, height);
+	case ALGORITHM_NORMAL_NON_TORUS_CUDA:
+		return new LogicNormal(width, height);
+	default:
+		return new LogicNormal(width, height);
+	}
+}
+

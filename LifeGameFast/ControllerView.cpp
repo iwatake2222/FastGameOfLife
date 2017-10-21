@@ -8,14 +8,14 @@ ControllerView::ControllerView()
 
 	m_worldWidth = DEFAULT_WORLD_WIDTH;
 	m_worldHeight = DEFAULT_WORLD_HEIGHT;
-	m_worldAlgorithm = ALGORITHM::NORMAL;
+	m_worldAlgorithm = ALGORITHM_NORMAL;
 	m_density = DEFAULT_CELLS_DENSITY;
 	m_prm1 = 0;
 	m_prm2 = 0;
 	m_prm3 = 0;
 	m_prm4 = 0;
 
-	m_viewInterval = 1;
+	m_viewInterval = DEFAULT_VIEW_INTERVAL;
 
 	initLibrary();
 	initUI();
@@ -212,7 +212,14 @@ void ControllerView::initUI()
 
 	TwAddVarRW(m_pBar, "width", TW_TYPE_INT32, &m_worldWidth, " min=16 max=4096 step=16 label='Width' group='World Parameters' ");
 	TwAddVarRW(m_pBar, "height", TW_TYPE_INT32, &m_worldHeight, " min=16 max=4096 step=16 label='Height' group='World Parameters' ");
-	TwEnumVal algorithmEV[] = { { NORMAL, "Normal" },{ NEW1, "New1" },{ NEW2, "New2" } };
+	TwEnumVal algorithmEV[] = { 
+		{ ALGORITHM_NORMAL, "Normal" },
+		{ ALGORITHM_NORMAL_MP, "Normal Open MP" },
+		{ ALGORITHM_NORMAL_CUDA, "Normal CUDA" },
+		{ ALGORITHM_NORMAL_NON_TORUS, "Normal(Non Torus)" },
+		{ ALGORITHM_NORMAL_NON_TORUS_MP, "Normal(Non Torus) Open MP" },
+		{ ALGORITHM_NORMAL_NON_TORUS_CUDA, "Normal(Non Torus) CUDA" },
+	};
 	TwType algorithmType = TwDefineEnum("AlgorithmType", algorithmEV, ALGORITHM_NUM);
 	TwAddVarRW(m_pBar, "Algorithm", algorithmType, &m_worldAlgorithm, " keyIncr='<' keyDecr='>' help='Change algorithm.' group='World Parameters' ");
 	TwAddButton(m_pBar, "btnWorldGenerate", ControllerView::onClickBtnWorldGenerate, this, " label='Generate new world[g]' group='World Parameters' ");

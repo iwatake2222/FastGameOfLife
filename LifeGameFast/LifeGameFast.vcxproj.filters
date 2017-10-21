@@ -24,16 +24,10 @@
     <ClInclude Include="WorldView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WorldLogic.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WorldContext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WindowManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="IWorldLogic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ControllerView.h">
@@ -51,6 +45,24 @@
     <ClInclude Include="Values.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LogicBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicNormal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicNormalMP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicNormalNonTorus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicNormalNonTorusMP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ILogic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -60,9 +72,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WorldView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="WorldLogic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WorldContext.cpp">
@@ -78,6 +87,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AnalView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicNormal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicNormalMP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicNormalNonTorus.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicNormalNonTorusMP.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

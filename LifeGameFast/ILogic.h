@@ -1,5 +1,5 @@
 #pragma once
-class IWorldLogic
+class ILogic
 {
 public:
 	typedef struct {
@@ -11,7 +11,7 @@ public:
 		unsigned int calcTime;	// the number of total alive cellsint calcTime;	// current calculation time [ms]
 	} WORLD_INFORMATION;
 public:
-	virtual ~IWorldLogic() {}
+	virtual ~ILogic() {}
 	/* for operation */
 	virtual void startRun() = 0;
 	virtual void stopRun() = 0;

@@ -1,9 +1,9 @@
 #pragma once
 #include "WorldContext.h"
+#include "Values.h"
 class ControllerView 
 {
 private:
-	typedef enum { NORMAL = 0, NEW1, NEW2, ALGORITHM_NUM } ALGORITHM;
 	static const int WINDOW_WIDTH  = 400;
 	static const int WINDOW_HEIGHT = 600;
 	int m_windowId;

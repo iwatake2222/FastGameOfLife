@@ -83,7 +83,7 @@ void AnalView::analyseInformation(ANAL_INFORMATION *info)
 	int *mat = m_pContext->m_pLogic->getDisplayMat();
 #endif
 
-	IWorldLogic::WORLD_INFORMATION worldInfo;
+	ILogic::WORLD_INFORMATION worldInfo;
 	m_pContext->m_pLogic->getInformation(&worldInfo);
 	int generation = worldInfo.generation;
 
@@ -187,7 +187,7 @@ void AnalView::displayInformationText(ANAL_INFORMATION* info)
 {
 	char str[32];
 
-	IWorldLogic::WORLD_INFORMATION worldInfo;
+	ILogic::WORLD_INFORMATION worldInfo;
 	m_pContext->m_pLogic->getInformation(&worldInfo);
 	
 	glColor3dv(COLOR_3D_NORMAL);
@@ -241,7 +241,7 @@ void AnalView::onUpdate(void)
 	drawBackGround();
 
 	ANAL_INFORMATION newInfo = { 0 };
-	IWorldLogic::WORLD_INFORMATION worldInfo;
+	ILogic::WORLD_INFORMATION worldInfo;
 	m_pContext->m_pLogic->getInformation(&worldInfo);
 	if (worldInfo.status != 0) {
 		/*** Analyse informaiton of the current generation ***/

@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include "WorldContext.h"
 #include "WorldView.h"
-#include "WorldLogic.h"
+#include "LogicBase.h"
 #include "AnalView.h"
 #include "ControllerView.h"
+
+#include "Values.h"
 
 #include <windows.h>
 #include <Commdlg.h>
@@ -14,11 +16,10 @@
 
 WorldContext::WorldContext()
 {
-	/* fixed during lifespan */
 	WORLD_WIDTH = ControllerView::getInstance()->m_worldWidth;
 	WORLD_HEIGHT = ControllerView::getInstance()->m_worldHeight;
 
-	m_pLogic = new WorldLogic(WORLD_WIDTH, WORLD_HEIGHT);
+	m_pLogic = LogicBase::generateLogic(ControllerView::getInstance()->m_worldAlgorithm, WORLD_WIDTH, WORLD_HEIGHT);
 	m_pView = new WorldView(this);
 	m_pAnalView = new AnalView(this);
 
@@ -26,19 +27,13 @@ WorldContext::WorldContext()
 }
 
 
-WorldContext::WorldContext(int width, int height, int algorithm, int windowX, int windowY, int windowWidth, int windowHeight)
+WorldContext::WorldContext(int width, int height, ALGORITHM algorithm, int windowX, int windowY, int windowWidth, int windowHeight)
 {
-	/* fixed during lifespan */
 	WORLD_WIDTH = width;
 	WORLD_HEIGHT = height;
 
-	switch (algorithm) {
-	case ALGORITHM_NORMAL:
-	case ALGORITHM_NORMAL_CUDA:
-	default:
-		m_pLogic = new WorldLogic(WORLD_WIDTH, WORLD_HEIGHT);
-		break;
-	}
+	if (algorithm == ALGORITHM_AUTO) algorithm = ControllerView::getInstance()->m_worldAlgorithm;
+	m_pLogic = LogicBase::generateLogic(algorithm, WORLD_WIDTH, WORLD_HEIGHT);
 	m_pView = new WorldView(this, windowX, windowY, windowWidth, windowHeight);
 	m_pAnalView = new AnalView(this);
 
