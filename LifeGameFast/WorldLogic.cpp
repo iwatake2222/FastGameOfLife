@@ -49,6 +49,16 @@ void WorldLogic::sendCommand(COMMAND cmd) {
 	while (!m_isCmdCompleted) std::this_thread::yield();
 }
 
+void WorldLogic::startRun()
+{
+	sendCommand(CMD_VIEW_2_LOGIC_START);
+}
+
+void WorldLogic::stopRun()
+{
+	sendCommand(CMD_VIEW_2_LOGIC_STOP);
+}
+
 void WorldLogic::toggleRun()
 {
 	if (m_isRunning) {

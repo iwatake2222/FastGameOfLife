@@ -19,3 +19,6 @@ static const int DEFAULT_WINDOW_WIDTH = 640;
 static const int DEFAULT_WINDOW_HEIGHT = 480;
 static const int DEFAULT_WINDOW_X = 0;
 static const int DEFAULT_WINDOW_Y = 0;
+
+static const int ALGORITHM_NORMAL = 0;
+static const int ALGORITHM_NORMAL_CUDA = 1;

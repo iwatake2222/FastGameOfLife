@@ -55,6 +55,8 @@ public:
 	WorldLogic(int worldWidth, int worldHeigh);
 	virtual ~WorldLogic();
 
+	void startRun();
+	void stopRun();
 	void toggleRun();
 	void stepRun();
 

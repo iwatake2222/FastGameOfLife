@@ -5,7 +5,7 @@ class ControllerView
 private:
 	typedef enum { NORMAL = 0, NEW1, NEW2, ALGORITHM_NUM } ALGORITHM;
 	static const int WINDOW_WIDTH  = 400;
-	static const int WINDOW_HEIGHT = 400;
+	static const int WINDOW_HEIGHT = 600;
 	int m_windowId;
 	TwBar *m_pBar;
 	WorldContext* m_pCurrentWorldContext;
@@ -42,7 +42,10 @@ private:
 	static void TW_CALL onClickBtnAllocAll(void * clientData);
 	static void TW_CALL onClickBtnClearAll(void * clientData);
 	static void TW_CALL onClickBtnInformation(void * clientData);
+	static void TW_CALL onClickBtnWorldUpdate(void * clientData);
 	static void TW_CALL onClickBtnWorldGenerate(void * clientData);
+	static void TW_CALL onClickBtnWorldLoad(void * clientData);
+	static void TW_CALL onClickBtnWorldSave(void * clientData);
 	static void TW_CALL onClickBtnWorldQuit(void * clientData);
 
 	ControllerView();

@@ -167,6 +167,28 @@ void TW_CALL ControllerView::onClickBtnWorldGenerate(void * clientData)
 	new WorldContext();
 }
 
+void TW_CALL ControllerView::onClickBtnWorldUpdate(void * clientData)
+{
+	if (getInstance()->m_pCurrentWorldContext) {
+		delete getInstance()->m_pCurrentWorldContext;
+		getInstance()->m_pCurrentWorldContext = NULL;
+	}
+	new WorldContext();
+}
+
+void TW_CALL ControllerView::onClickBtnWorldLoad(void * clientData)
+{
+	WorldContext *context = WorldContext::generateFromFile();
+}
+
+void TW_CALL ControllerView::onClickBtnWorldSave(void * clientData)
+{
+	if (getInstance()->m_pCurrentWorldContext) {
+		getInstance()->m_pCurrentWorldContext->m_pLogic->stopRun();
+		WorldContext::saveToFile(getInstance()->m_pCurrentWorldContext);
+	}
+}
+
 void TW_CALL ControllerView::onClickBtnWorldQuit(void * clientData)
 {
 	if (getInstance()->m_pCurrentWorldContext) {
@@ -193,22 +215,27 @@ void ControllerView::initUI()
 	TwEnumVal algorithmEV[] = { { NORMAL, "Normal" },{ NEW1, "New1" },{ NEW2, "New2" } };
 	TwType algorithmType = TwDefineEnum("AlgorithmType", algorithmEV, ALGORITHM_NUM);
 	TwAddVarRW(m_pBar, "Algorithm", algorithmType, &m_worldAlgorithm, " keyIncr='<' keyDecr='>' help='Change algorithm.' group='World Parameters' ");
-
+	TwAddButton(m_pBar, "btnWorldGenerate", ControllerView::onClickBtnWorldGenerate, this, " label='Generate new world[g]' group='World Parameters' ");
+	TwAddButton(m_pBar, "btnWorldUpdate", ControllerView::onClickBtnWorldUpdate, this, " label='Generate ' group='World Parameters' ");
+	TwAddButton(m_pBar, "btnWorldLoad", ControllerView::onClickBtnWorldLoad, this, " label='Load World' group='World Parameters' ");
+	TwAddButton(m_pBar, "btnWorldSave", ControllerView::onClickBtnWorldSave, this, " label='Save World' group='World Parameters' ");
+	TwAddButton(m_pBar, "btnWorldQuit", ControllerView::onClickBtnWorldQuit, this, " label='Quit [q]' group='World Parameters' ");
+	
 	TwAddSeparator(m_pBar, NULL, NULL);
 	TwAddButton(m_pBar, "btnInformation", ControllerView::onClickBtnInformation, this, " label='show Information [i]' group='View' ");
 	TwAddVarRW(m_pBar, "viewInterval", TW_TYPE_INT32, &m_viewInterval, "min=1 max=100 step=1 label='interval' group='View' ");
 
 	TwAddSeparator(m_pBar, NULL, NULL);
-	TwAddButton(m_pBar, "btnWorldGenerate", ControllerView::onClickBtnWorldGenerate, this, " label='Generate [g]' group='World Parameters' ");
-	TwAddButton(m_pBar, "btnWorldQuit", ControllerView::onClickBtnWorldQuit, this, " label='Quit [q]' group='World Parameters' ");
-
+	TwAddButton(m_pBar, "textLClick", NULL, this, " label='Left click/drag to put/clear cells' group='Operations' ");
+	TwAddButton(m_pBar, "textRClick", NULL, this, " label='Right drag to move area' group='Operations' ");
+	TwAddButton(m_pBar, "textWheel", NULL, this, " label='Wheel to zoom in/out' group='Operations' ");
+	TwAddButton(m_pBar, "textCClick", NULL, this, " label='Center click to initialize view' group='Operations' ");
 	TwAddButton(m_pBar, "btnStartStop", ControllerView::onClickBtnStartStop, this, " label='Play [p]' group='Operations' ");
 	TwAddButton(m_pBar, "btnStep", ControllerView::onClickBtnStep, this, " label='Step [s]' group='Operations' ");
 	TwAddButton(m_pBar, "btnAlloc", ControllerView::onClickBtnAlloc, this, " label='Alloc [a]' group='Operations' ");
 	TwAddButton(m_pBar, "btnClear", ControllerView::onClickBtnClear, this, " label='Clear [c]' group='Operations' ");
 	TwAddButton(m_pBar, "btnAllocAll", ControllerView::onClickBtnAllocAll, this, " label='Alloc all [A]' group='Operations' ");
 	TwAddButton(m_pBar, "btnClearAll", ControllerView::onClickBtnClearAll, this, " label='Clear all [C]' group='Operations' ");
-	TwAddSeparator(m_pBar, NULL, NULL);
 	TwAddVarRW(m_pBar, "density", TW_TYPE_INT32, &m_density, "min=0 max=100 step=1 label='Density' group='Operations' ");
 	TwAddVarRW(m_pBar, "prm1", TW_TYPE_INT32, &m_prm1, "min=0 max=10 step=1 label='Group' group='Operations' ");
 	TwAddVarRW(m_pBar, "prm2", TW_TYPE_INT32, &m_prm2, "min=0 max=100 step=1 label='prm2' group='Operations' ");

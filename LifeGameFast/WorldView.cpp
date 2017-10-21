@@ -6,7 +6,7 @@
 #include "Values.h"
 
 
-WorldView::WorldView(WorldContext* pContext)
+WorldView::WorldView(WorldContext* pContext, int windowX, int windowY, int windowWidth, int windowHeight)
 {
 	/* fixed during lifespan */
 	WORLD_WIDTH = pContext->WORLD_WIDTH;
@@ -16,8 +16,8 @@ WorldView::WorldView(WorldContext* pContext)
 	m_pContext = pContext;
 
 	/* initial window size */
-	m_windowWidth = DEFAULT_WINDOW_WIDTH;
-	m_windowHeight = DEFAULT_WINDOW_HEIGHT;
+	m_windowWidth = windowWidth;
+	m_windowHeight = windowHeight;
 
 	m_worldVisibleX0 = -WORLD_WIDTH_MARGIN;
 	m_worldVisibleX1 = WORLD_WIDTH + WORLD_WIDTH_MARGIN;
@@ -31,6 +31,8 @@ WorldView::WorldView(WorldContext* pContext)
 
 	m_intervalCnt = 0;
 
+	glutInitWindowPosition(windowX, windowY);
+	glutInitWindowSize(m_windowWidth, m_windowHeight);
 	initOpenGL();
 	initView();
 }
@@ -44,8 +46,6 @@ WorldView::~WorldView()
 
 void WorldView::initOpenGL()
 {
-	glutInitWindowPosition(DEFAULT_WINDOW_X, DEFAULT_WINDOW_Y);
-	glutInitWindowSize(m_windowWidth, m_windowHeight);
 	glutInitDisplayMode(GLUT_RGBA);
 	m_windowId = glutCreateWindow("The Game of Life");
 	WindowManager::getInstance()->registerWindow(m_windowId, this);

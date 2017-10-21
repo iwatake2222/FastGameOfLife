@@ -13,6 +13,8 @@ public:
 public:
 	virtual ~IWorldLogic() {}
 	/* for operation */
+	virtual void startRun() = 0;
+	virtual void stopRun() = 0;
 	virtual void toggleRun() = 0;
 	virtual void stepRun() = 0;
 	virtual int* getDisplayMat() = 0;

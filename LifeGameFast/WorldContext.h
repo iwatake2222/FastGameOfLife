@@ -1,4 +1,5 @@
 #pragma once
+#include "Values.h"
 #include "IView.h"
 #include "IWorldLogic.h"
 class WorldContext
@@ -17,6 +18,11 @@ public:
 
 public:
 	WorldContext();
+	WorldContext(int width, int height, int algorithm = ALGORITHM_NORMAL, int windowX = DEFAULT_WINDOW_X, int windowY = DEFAULT_WINDOW_Y, int windowWidth = DEFAULT_WINDOW_WIDTH, int windowHeight = DEFAULT_WINDOW_HEIGHT);
 	~WorldContext();
+
+	static WorldContext* generateFromFile();
+	static WorldContext* generateFromFile(LPWSTR filename);
+	static void saveToFile(WorldContext* context);
 };
 

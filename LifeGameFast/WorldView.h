@@ -54,7 +54,7 @@ private:
 	void convertPosWindow2World(int x, int y, int* worldX, int* worldY);
 
 public:
-	WorldView(WorldContext* pContext);
+	WorldView(WorldContext* pContext, int windowX = DEFAULT_WINDOW_X, int windowY = DEFAULT_WINDOW_Y, int windowWidth = DEFAULT_WINDOW_WIDTH, int windowHeight = DEFAULT_WINDOW_HEIGHT);
 	~WorldView();
 
 	void onUpdate(void);
