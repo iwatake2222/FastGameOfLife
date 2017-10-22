@@ -19,6 +19,10 @@ WorldContext::WorldContext()
 	WORLD_WIDTH = ControllerView::getInstance()->m_worldWidth;
 	WORLD_HEIGHT = ControllerView::getInstance()->m_worldHeight;
 
+	/* 16 align */
+	WORLD_WIDTH = (WORLD_WIDTH / 16) * 16;
+	WORLD_HEIGHT = (WORLD_HEIGHT / 16) * 16;
+
 	m_pLogic = LogicBase::generateLogic(ControllerView::getInstance()->m_worldAlgorithm, WORLD_WIDTH, WORLD_HEIGHT);
 	m_pLogic->initialize();
 	m_pView = new WorldView(this);

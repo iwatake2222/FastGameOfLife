@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "ControllerView.h"
-#include "WorldContextManager.h"
 #include "Values.h"
 ControllerView::ControllerView()
 {
@@ -8,7 +7,7 @@ ControllerView::ControllerView()
 
 	m_worldWidth = DEFAULT_WORLD_WIDTH;
 	m_worldHeight = DEFAULT_WORLD_HEIGHT;
-	m_worldAlgorithm = ALGORITHM_NORMAL_CUDA;
+	m_worldAlgorithm = DEFAULT_ALGORITHM;
 	m_density = DEFAULT_CELLS_DENSITY;
 	m_prm1 = 0;
 	m_prm2 = 0;
@@ -222,15 +221,15 @@ void ControllerView::initUI()
 	};
 	TwType algorithmType = TwDefineEnum("AlgorithmType", algorithmEV, ALGORITHM_NUM);
 	TwAddVarRW(m_pBar, "Algorithm", algorithmType, &m_worldAlgorithm, " keyIncr='<' keyDecr='>' help='Change algorithm.' group='World Parameters' ");
+	TwAddButton(m_pBar, "btnWorldUpdate", ControllerView::onClickBtnWorldUpdate, this, " label='Re-generate ' group='World Parameters' ");
 	TwAddButton(m_pBar, "btnWorldGenerate", ControllerView::onClickBtnWorldGenerate, this, " label='Generate new world[g]' group='World Parameters' ");
-	TwAddButton(m_pBar, "btnWorldUpdate", ControllerView::onClickBtnWorldUpdate, this, " label='Generate ' group='World Parameters' ");
 	TwAddButton(m_pBar, "btnWorldLoad", ControllerView::onClickBtnWorldLoad, this, " label='Load World' group='World Parameters' ");
 	TwAddButton(m_pBar, "btnWorldSave", ControllerView::onClickBtnWorldSave, this, " label='Save World' group='World Parameters' ");
 	TwAddButton(m_pBar, "btnWorldQuit", ControllerView::onClickBtnWorldQuit, this, " label='Quit [q]' group='World Parameters' ");
 	
 	TwAddSeparator(m_pBar, NULL, NULL);
 	TwAddButton(m_pBar, "btnInformation", ControllerView::onClickBtnInformation, this, " label='show Information [i]' group='View' ");
-	TwAddVarRW(m_pBar, "viewInterval", TW_TYPE_INT32, &m_viewInterval, "min=1 max=100 step=1 label='interval' group='View' ");
+	TwAddVarRW(m_pBar, "viewInterval", TW_TYPE_INT32, &m_viewInterval, "min=1 max=10 step=1 label='Draw interval' group='View' ");
 
 	TwAddSeparator(m_pBar, NULL, NULL);
 	TwAddButton(m_pBar, "textLClick", NULL, this, " label='Left click/drag to put/clear cells' group='Operations' ");

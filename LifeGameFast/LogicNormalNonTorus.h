@@ -1,11 +1,9 @@
 #pragma once
-#include "LogicBase.h"
-class LogicNormalNonTorus : public LogicBase
+#include "LogicNormal.h"
+class LogicNormalNonTorus : public LogicNormal
 {
 private:
-	virtual void gameLogic() override;
-	void loopWithBorder(int x0, int x1, int y0, int y1, WORLD_INFORMATION* info);
-	void loopWithoutBorder(int x0, int x1, int y0, int y1, WORLD_INFORMATION* info);
+	virtual void loopWithBorderCheck(int x0, int x1, int y0, int y1) override;
 public:
 	LogicNormalNonTorus(int worldWidth, int worldHeight);
 	virtual ~LogicNormalNonTorus() override;

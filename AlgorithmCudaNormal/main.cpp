@@ -25,7 +25,6 @@ void unitTest()
 {
 	int width = 64;
 	int height = 32;
-	int temp;
 	int *src, *dst;
 	allocManaged(&src, width * height * sizeof(int));
 	allocManaged(&dst, width * height * sizeof(int));
@@ -33,7 +32,7 @@ void unitTest()
 		src[i] = i;
 		dst[i] = 0;
 	}
-	logicForOneGeneration(dst, &temp, &temp, &temp, src, width, height);
+	logicForOneGeneration(dst, src, width, height);
 
 	//for (int i = 0; i < width * height; i++) {
 	//	printf("%d ", dst[i]);

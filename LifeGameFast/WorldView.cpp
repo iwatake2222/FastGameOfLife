@@ -29,8 +29,6 @@ WorldView::WorldView(WorldContext* pContext, int windowX, int windowY, int windo
 	m_previousRDragX = INVALID_NUM;
 	m_previousRDragY = INVALID_NUM;
 
-	m_intervalCnt = 0;
-
 	glutInitWindowPosition(windowX, windowY);
 	glutInitWindowSize(m_windowWidth, m_windowHeight);
 	initOpenGL();
@@ -59,12 +57,12 @@ void WorldView::initView()
 	/* the aspect of worldVisible must be the same as that of window */
 	double worldVisibleWidth;
 	double worldVisibleHeight;
-	if (m_windowWidth < m_windowHeight) {
-		worldVisibleWidth = WORLD_WIDTH + WORLD_WIDTH_MARGIN * 2;
-		worldVisibleHeight = (worldVisibleWidth * m_windowHeight) / m_windowWidth;
-	} else {
+	if (m_windowWidth > m_windowHeight) {
 		worldVisibleHeight = WORLD_HEIGHT + WORLD_HEIGHT_MARGIN * 2;
 		worldVisibleWidth = (worldVisibleHeight * m_windowWidth) / m_windowHeight;
+	} else {
+		worldVisibleWidth = WORLD_WIDTH + WORLD_WIDTH_MARGIN * 2;
+		worldVisibleHeight = (worldVisibleWidth * m_windowHeight) / m_windowWidth;
 	}
 	m_worldVisibleX0 = WORLD_WIDTH / 2 - worldVisibleWidth / 2;
 	m_worldVisibleX1 = WORLD_WIDTH / 2 + worldVisibleWidth / 2;
@@ -122,23 +120,26 @@ void WorldView::drawGrid()
 
 void WorldView::drawCells()
 {
-//#define DRAW_CELLS_SAFE
-#ifdef DRAW_CELLS_SAFE
-	int *mat = new int[WORLD_WIDTH * WORLD_HEIGHT];
-	m_pContext->m_pLogic->copyDisplayMat(mat);
-#else
-	/* without exclusive control for high speed performance */
+	/*** for lighter draw ***/
+	/* don't draw 1> cells in 1 pixel */
+	/* also thinned out by user setting */
+	int intervalX = (m_worldVisibleX1 - m_worldVisibleX0) / m_windowWidth;
+	int intervalY = (m_worldVisibleY1 - m_worldVisibleY0) / m_windowHeight;
+	if (intervalX < 1)intervalX = 1;
+	if (intervalY < 1)intervalY = 1;
+	intervalX *= ControllerView::getInstance()->m_viewInterval;
+	intervalY *= ControllerView::getInstance()->m_viewInterval;
+
 	int *mat = m_pContext->m_pLogic->getDisplayMat();
-#endif
 
 	glBegin(GL_QUADS);
 	/* draw only visible area */
 	ILogic::WORLD_INFORMATION info;
 	m_pContext->m_pLogic->getInformation(&info);
 	int generation = info.generation;
-	for (int y = (int)fmax(m_worldVisibleY0, 0); y < (int)fmin(m_worldVisibleY1, WORLD_HEIGHT); y++) {
+	for (int y = (int)fmax(m_worldVisibleY0, 0); y < (int)fmin(m_worldVisibleY1, WORLD_HEIGHT); y += intervalY) {
 		int yIndex = WORLD_WIDTH * y;
-		for (int x = (int)fmax(m_worldVisibleX0, 0); x < (int)fmin(m_worldVisibleX1, WORLD_WIDTH); x++) {
+		for (int x = (int)fmax(m_worldVisibleX0, 0); x < (int)fmin(m_worldVisibleX1, WORLD_WIDTH); x += intervalX) {
 			if (mat[yIndex + x] == 0) {
 				glColor3dv(COLOR_3D_DEAD);
 #if 1
@@ -159,22 +160,16 @@ void WorldView::drawCells()
 			}
 #endif
 			glVertex2d(x + 0, y + 0);
-			glVertex2d(x + 1, y + 0);
-			glVertex2d(x + 1, y + 1);
-			glVertex2d(x + 0, y + 1);
+			glVertex2d(x + intervalX, y + 0);
+			glVertex2d(x + intervalX, y + intervalY);
+			glVertex2d(x + 0, y + intervalY);
 		}
 	}
 	glEnd();
-#ifdef DRAW_CELLS_SAFE
-	delete mat;
-#endif
-
 }
 
 void WorldView::onUpdate(void)
 {
-	if (m_intervalCnt++ % ControllerView::getInstance()->m_viewInterval != 0) return;
-
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glLoadIdentity();
@@ -366,21 +361,21 @@ void WorldView::onKeyboard(unsigned char key, int x, int y)
 	switch (key) {
 	case 'a':
 		density = ControllerView::getInstance()->m_density;
-		m_pContext->m_pLogic->allocCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, density, 0, 0, 0, 0);
+		m_pContext->m_pLogic->allocCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, density);
 		glutPostRedisplay();
 		break;
 	case 'c':
-		m_pContext->m_pLogic->allocCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, 0, 0, 0, 0, 0);
+		m_pContext->m_pLogic->allocCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, 0);
 		glutPostRedisplay();
 		break;
 	case 'A':
 		density = ControllerView::getInstance()->m_density;
-		m_pContext->m_pLogic->allocCells(0, WORLD_WIDTH, 0, WORLD_HEIGHT, density, 0, 0, 0, 0);
+		m_pContext->m_pLogic->allocCells(0, WORLD_WIDTH, 0, WORLD_HEIGHT, density);
 		m_pContext->m_pLogic->resetInformation();
 		glutPostRedisplay();
 		break;
 	case 'C':
-		m_pContext->m_pLogic->allocCells(0, WORLD_WIDTH, 0, WORLD_HEIGHT, 0, 0, 0, 0, 0);
+		m_pContext->m_pLogic->allocCells(0, WORLD_WIDTH, 0, WORLD_HEIGHT, 0);
 		m_pContext->m_pLogic->resetInformation();
 		glutPostRedisplay();
 		break;

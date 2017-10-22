@@ -8,11 +8,13 @@ namespace AlgorithmCudaNormal
 #ifdef DLL_EXPORT
 __declspec(dllexport) void allocManaged(int **p, int size);
 __declspec(dllexport) void freeManaged(int *p);
-__declspec(dllexport) void logicForOneGeneration(int* matDst, int *numAlive, int *numBirth, int *numDie, int* matSrc, int width, int height);
+__declspec(dllexport) void cudaDeviceSynchronizeWrapper();
+__declspec(dllexport) void logicForOneGeneration(int* matDst, int* matSrc, int width, int height);
 #else
 __declspec(dllimport) void allocManaged(int **p, int size);
 __declspec(dllimport) void freeManaged(int *p);
-__declspec(dllimport) void logicForOneGeneration(int* matDst, int *numAlive, int *numBirth, int *numDie, int* matSrc, int width, int height);
+__declspec(dllimport) void cudaDeviceSynchronizeWrapper();
+__declspec(dllimport) void logicForOneGeneration(int* matDst, int* matSrc, int width, int height);
 #endif
 
 }

@@ -74,14 +74,7 @@ void AnalView::analyseInformation(ANAL_INFORMATION *info)
 {
 	int worldWidth = m_pContext->WORLD_WIDTH;
 	int worldHeight = m_pContext->WORLD_HEIGHT;
-//#define DRAW_CELLS_SAFE
-#ifdef DRAW_CELLS_SAFE
-	int *mat = new int[worldWidth * worldHeight];
-	m_pContext->m_pLogic->copyDisplayMat(mat);
-#else
-	/* without exclusive control for high speed performance */
 	int *mat = m_pContext->m_pLogic->getDisplayMat();
-#endif
 
 	ILogic::WORLD_INFORMATION worldInfo;
 	m_pContext->m_pLogic->getInformation(&worldInfo);
@@ -109,9 +102,6 @@ void AnalView::analyseInformation(ANAL_INFORMATION *info)
 			}
 		}
 	}
-#ifdef DRAW_CELLS_SAFE
-	delete mat;
-#endif
 }
 
 void AnalView::displayInformationGraph()
@@ -225,7 +215,7 @@ void AnalView::displayInformationText(ANAL_INFORMATION* info)
 	writeTextArea(8, str);
 
 	glColor3dv(COLOR_3D_NORMAL);
-	sprintf_s(str, "FPS = %3.2lf", 1000.0 / worldInfo.calcTime);
+	sprintf_s(str, "FPS = %3.2lf (%d [msec]", 1000.0 / worldInfo.calcTime, worldInfo.calcTime);
 	writeTextArea(9, str);
 }
 
@@ -245,11 +235,12 @@ void AnalView::onUpdate(void)
 	ANAL_INFORMATION newInfo = { 0 };
 	ILogic::WORLD_INFORMATION worldInfo;
 	m_pContext->m_pLogic->getInformation(&worldInfo);
+
+	// todo: should consider frame skip (need to contain generation info) */
 	if (worldInfo.status != 0) {
 		/*** Analyse informaiton of the current generation ***/
 		analyseInformation(&newInfo);
 		
-
 		/*** Update analysis informaiton history ***/
 		analInfoHistory.push_back(newInfo);
 		if (analInfoHistory.size() > m_NumHistory) {

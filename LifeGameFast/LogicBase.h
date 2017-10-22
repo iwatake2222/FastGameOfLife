@@ -1,5 +1,11 @@
 #pragma once
 #include "ILogic.h"
+
+/* Base Logic class
+ *  has thread main loop and treats message for the thread,
+ *  doesn't care the status/information/type of each cell (sub class converts cell information into displayed data)
+ *  has concrete logic class generator (should be separated from this class) 
+*/
 class LogicBase : public ILogic
 {
 private:
@@ -12,9 +18,6 @@ private:
 		CMD_SELF_EXIT,
 	} COMMAND;
 
-	const static int CELL_DEAD  = 0;
-	const static int CELL_ALIVE = 1;
-
 
 protected:
 	/* World Area (LifeGame world) is
@@ -24,33 +27,25 @@ protected:
 	int WORLD_WIDTH;
 	int WORLD_HEIGHT;
 
-	/* World Area Matrix
-	 * don't use std::vector<std::vector<int>> because it's too late
-	 * don't use 2-dimension array for copy operation later
-	 */
-	int *m_mat[2];
-	int *m_matDisplay;
-
 	/* command communication */
 	/* todo: rendezvous / mutex */
 	COMMAND m_cmd;
 	bool m_isCmdCompleted;
 
 	/* status control */
-	bool m_isRunning;
-	int m_matIdOld;	// this matrix is ready to display (CLEAN)
-	int m_matIdNew;	// currently this matrix is being modified using m_matIdOld (DIRTY)
+	bool m_isCalculating;
 
-	std::mutex m_mutexMat;	// to avoid logic thread update matrix while view thread is copying it
+	/* matrix data to be displayed */
+	int *m_matDisplay;
+	std::mutex m_mutexMatDisplay; // to avoid logic thread update matrix while view thread is copying it
+
 	std::thread m_thread;
 
 	/* Analysis information */
 	WORLD_INFORMATION m_info;
 
 private:
-	virtual void allocMemory(int **p, int size);
-	virtual void freeMemory(int *p);
-	virtual void gameLogic();
+	virtual void gameLogic() = 0;		// algorithm is implemented in sub class
 
 private:
 	void sendCommand(COMMAND cmd);
@@ -58,25 +53,22 @@ private:
 
 public:
 	LogicBase(int worldWidth, int worldHeigh);
-	virtual ~LogicBase();
+	virtual ~LogicBase() override;
 
-	void initialize();
-	void exit();
-	void startRun();
-	void stopRun();
-	void toggleRun();
-	void stepRun();
+	virtual void initialize() override final;
+	virtual void exit() override final;
+	virtual void startRun() override final;
+	virtual void stopRun() override final;
+	virtual void toggleRun() override final;
+	virtual void stepRun() override final;
+	virtual int* getDisplayMat() override final;
 
-	int* getDisplayMat();
-
-	void toggleCell(int worldX, int worldY);
-	void setCell(int worldX, int worldY);
-	void clearCell(int worldX, int worldY);
-
-	void allocCells(int x0, int x1, int y0, int y1, int prm0, int prm1, int prm2, int prm3, int prm4);
-
-	void getInformation(WORLD_INFORMATION *info);
-	void resetInformation();
+	virtual bool toggleCell(int worldX, int worldY, int prm1 = 0, int prm2 = 0, int prm3 = 0, int prm4 = 0) override;
+	virtual bool setCell(int worldX, int worldY, int prm1 = 0, int prm2 = 0, int prm3 = 0, int prm4 = 0) override;
+	virtual bool clearCell(int worldX, int worldY) override;
+	virtual void allocCells(int x0, int x1, int y0, int y1, int density, int prm1 = 0, int prm2 = 0, int prm3 = 0, int prm4 = 0) override;
+	virtual void getInformation(WORLD_INFORMATION *info) override;
+	virtual void resetInformation() override;
 
 public:
 	// todo: should make factory or manager class

@@ -13,35 +13,26 @@ LogicBase::LogicBase(int worldWidth, int worldHeight)
 	WORLD_WIDTH = worldWidth;
 	WORLD_HEIGHT = worldHeight;
 
+	m_matDisplay = new int[WORLD_WIDTH * WORLD_HEIGHT];
+
 	m_cmd = CMD_VIEW_2_LOGIC_NONE;
 	m_isCmdCompleted = true;
-	m_isRunning = false;
-	
-	m_matIdOld = 0;
-	m_matIdNew = 1;
+	m_isCalculating = false;
 
 	memset(&m_info, 0, sizeof(m_info));
 	m_info.calcTime = 999;
 	m_info.generation = 1;
-
 }
 
 LogicBase::~LogicBase()
 {
+	delete m_matDisplay;
 }
 
 
 void LogicBase::initialize()
 {
-	/* memo: allocMemory cannot be in constructor as virtual function pointer may not be initialized yet */
-	m_matDisplay = new int[WORLD_WIDTH * WORLD_HEIGHT];
-	for (int i = 0; i < 2; i++) {
-		allocMemory(&m_mat[i], WORLD_WIDTH * WORLD_HEIGHT);
-		memset(m_mat[i], 0x00, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
-		memset(m_matDisplay, 0x00, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
-	}
-
-	/* start main thread now*/
+	/* start main thread now */
 	std::thread t(&LogicBase::threadFunc, this);
 	m_thread.swap(t);
 }
@@ -50,22 +41,8 @@ void LogicBase::exit()
 {
 	m_cmd = CMD_SELF_EXIT;
 	if (m_thread.joinable()) m_thread.join();
-
-	for (int i = 0; i < 2; i++) {
-		freeMemory(m_mat[i]);
-		m_mat[i] = 0;
-	}
-	delete m_matDisplay;
-}
-
-void LogicBase::allocMemory(int **p, int size)
-{
-	*p = new int[size];
-}
-
-void LogicBase::freeMemory(int *p)
-{
-	delete p;
+	
+	/* after this, destructor must be called to free memory */
 }
 
 
@@ -89,7 +66,7 @@ void LogicBase::stopRun()
 
 void LogicBase::toggleRun()
 {
-	if (m_isRunning) {
+	if (m_info.status != 0) {
 		sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	} else {
 		sendCommand(CMD_VIEW_2_LOGIC_START);
@@ -102,41 +79,44 @@ void LogicBase::stepRun()
 }
 
 int* LogicBase::getDisplayMat() {
-	/* this is unsafe. the matrix retrieved might be updated while using */
-	return m_matDisplay;
+	int *ret;
+	m_mutexMatDisplay.lock();	// wait if thread is copying matrix data 
+	ret = m_matDisplay;
+	m_mutexMatDisplay.unlock();
+	return ret;
 }
 
 
-void LogicBase::toggleCell(int worldX, int worldY)
+bool LogicBase::toggleCell(int worldX, int worldY, int prm1, int prm2, int prm3, int prm4)
 {
-	if (m_isRunning) sendCommand(CMD_VIEW_2_LOGIC_STOP);
+	if (m_info.status) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	if (worldX >= 0 && worldX < WORLD_WIDTH && worldY >= 0 && worldY < WORLD_HEIGHT) {
-		m_matDisplay[WORLD_WIDTH * worldY + worldX] = m_matDisplay[WORLD_WIDTH * worldY + worldX] == CELL_DEAD ? CELL_ALIVE : CELL_DEAD;
-		m_mat[m_matIdOld][WORLD_WIDTH * worldY + worldX] = m_mat[m_matIdOld][WORLD_WIDTH * worldY + worldX] == CELL_DEAD ? CELL_ALIVE : CELL_DEAD;
+		return true;
 	}
+	return false;
 }
 
-void LogicBase::setCell(int worldX, int worldY)
+bool LogicBase::setCell(int worldX, int worldY, int prm1, int prm2, int prm3, int prm4)
 {
-	if (m_isRunning) sendCommand(CMD_VIEW_2_LOGIC_STOP);
+	if (m_isCalculating) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	if (worldX >= 0 && worldX < WORLD_WIDTH && worldY >= 0 && worldY < WORLD_HEIGHT) {
-		m_matDisplay[WORLD_WIDTH * worldY + worldX] = CELL_ALIVE;
-		m_mat[m_matIdOld][WORLD_WIDTH * worldY + worldX] = CELL_ALIVE;
+		return true;
 	}
+	return false;
 }
 
-void LogicBase::clearCell(int worldX, int worldY)
+bool LogicBase::clearCell(int worldX, int worldY)
 {
-	if (m_isRunning) sendCommand(CMD_VIEW_2_LOGIC_STOP);
+	if (m_isCalculating) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	if (worldX >= 0 && worldX < WORLD_WIDTH && worldY >= 0 && worldY < WORLD_HEIGHT) {
-		m_matDisplay[WORLD_WIDTH * worldY + worldX] = CELL_DEAD;
-		m_mat[m_matIdOld][WORLD_WIDTH * worldY + worldX] = CELL_DEAD;
+		return true;
 	}
+	return false;
 }
 
 void LogicBase::allocCells(int x0, int x1, int y0, int y1, int density, int prm1, int prm2, int prm3, int prm4)
 {
-	if (m_isRunning) sendCommand(CMD_VIEW_2_LOGIC_STOP);
+	if (m_isCalculating) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	if (x0 < 0) x0 = 0;
 	if (x1 >= WORLD_WIDTH) x1 = WORLD_WIDTH;
 	if (y0 < 0) y0 = 0;
@@ -149,8 +129,11 @@ void LogicBase::allocCells(int x0, int x1, int y0, int y1, int density, int prm1
 		for (int y = y0; y < y1; y++) {
 			int yIndex = WORLD_WIDTH * y;
 			for (int x = x0; x < x1; x++) {
-				m_matDisplay[yIndex + x] = rand() % reverseDensity == 0;
-				m_mat[m_matIdOld][yIndex + x] = m_matDisplay[yIndex + x];
+				if (rand() % reverseDensity == 0) {
+					setCell(x, y, prm1, prm2, prm3, prm4);
+				} else {
+					clearCell(x, y);
+				}
 			}
 		}
 	} else {
@@ -158,8 +141,7 @@ void LogicBase::allocCells(int x0, int x1, int y0, int y1, int density, int prm1
 		for (int y = y0; y < y1; y++) {
 			int yIndex = WORLD_WIDTH * y;
 			for (int x = x0; x < x1; x++) {
-				m_matDisplay[yIndex + x] = 0;
-				m_mat[m_matIdOld][yIndex + x] = 0;
+				clearCell(x, y);
 			}
 		}
 	}
@@ -170,9 +152,7 @@ void LogicBase::threadFunc()
 {
 	bool isExit = false;
 	while (!isExit) {
-		std::chrono::system_clock::time_point  timeStart, timeEnd;
-		timeStart = std::chrono::system_clock::now();
-
+		/*** Treat command ***/
 		COMMAND cmd = m_cmd;
 		m_cmd = CMD_VIEW_2_LOGIC_NONE;
 		switch (cmd) {
@@ -180,15 +160,18 @@ void LogicBase::threadFunc()
 		default:
 			break;
 		case CMD_VIEW_2_LOGIC_STOP:
-			m_isRunning = false;
+			m_isCalculating = false;
 			m_isCmdCompleted = true;
+			m_info.status = 0;
 			break;
 		case CMD_VIEW_2_LOGIC_START:
-			m_isRunning = true;
+			m_isCalculating = true;
 			m_isCmdCompleted = true;
+			m_info.status = 1;
 			break;
 		case CMD_VIEW_2_LOGIC_STEP:
-			m_isRunning = false;
+			m_isCalculating = false;
+			m_info.status = 1;
 			// send comp after one step done
 			break;
 		case CMD_SELF_EXIT:
@@ -196,29 +179,22 @@ void LogicBase::threadFunc()
 			break;
 		}
 
-		if (m_isRunning || cmd == CMD_VIEW_2_LOGIC_STEP) {
-			m_info.status = 1;
-			
-			//m_mutexMat.lock();	// wait if view module is copying current display buffer
-			gameLogic();
-
-			/* swap matrix (calc - display) */
-			int tempId = m_matIdOld;
-			m_matIdOld = m_matIdNew;
-			m_matIdNew = tempId;
-			//m_mutexMat.unlock();
-			if (cmd == CMD_VIEW_2_LOGIC_STEP) {
-				m_isCmdCompleted = true;
-			}
-		} else {
-			m_info.status = 0;
+		if (m_info.status) {
+			/*** Operate game logic for one generation ***/
+			std::chrono::system_clock::time_point  timeStart, timeEnd;
+			timeStart = std::chrono::system_clock::now();
+			gameLogic();	/*** <- use selected algorithm (implemented in sub class) ***/
+			timeEnd = std::chrono::system_clock::now();
+			int timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart).count();
+			m_info.calcTime = timeElapsed;
+			//printf("fpsCalc = %lf\n", 1000.0 / timeElapsed);
 		}
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		timeEnd = std::chrono::system_clock::now();
-		int timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart).count();
-		m_info.calcTime = timeElapsed;
-		//printf("fpsCalc = %lf\n", 1000.0 / timeElapsed);
+		if (cmd == CMD_VIEW_2_LOGIC_STEP) {
+			m_info.status = 0;
+			m_isCmdCompleted = true;
+		}
+		
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));	/* workaround. without this, this thread occupies CPU */
 	}
 }
 
@@ -234,15 +210,6 @@ void LogicBase::resetInformation()
 }
 
 
-void LogicBase::gameLogic()
-{
-	for (int y = 0; y < WORLD_HEIGHT; y++) {
-		for (int x = 0; x < WORLD_WIDTH; x++) {
-			m_mat[m_matIdNew][WORLD_WIDTH * y + x] = m_mat[m_matIdOld][WORLD_WIDTH * y + x];
-		}
-	}
-	memcpy(m_matDisplay, m_mat[m_matIdNew], WORLD_WIDTH*WORLD_HEIGHT);
-}
 
 ILogic* LogicBase::generateLogic(int algorithm, int width, int height)
 {
@@ -257,8 +224,8 @@ ILogic* LogicBase::generateLogic(int algorithm, int width, int height)
 		return new LogicNormalNonTorus(width, height);
 	case ALGORITHM_NORMAL_NON_TORUS_MP:
 		return new LogicNormalNonTorusMP(width, height);
-	case ALGORITHM_NORMAL_NON_TORUS_CUDA:
-		return new LogicNormal(width, height);
+	//case ALGORITHM_NORMAL_NON_TORUS_CUDA:
+	//	return new LogicNormal(width, height);
 	default:
 		return new LogicNormal(width, height);
 	}

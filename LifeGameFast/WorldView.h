@@ -44,8 +44,6 @@ private:
 
 	int m_windowId;
 	
-	int m_intervalCnt;
-
 private:
 	void initOpenGL();
 	void initView();
@@ -55,13 +53,13 @@ private:
 
 public:
 	WorldView(WorldContext* pContext, int windowX = DEFAULT_WINDOW_X, int windowY = DEFAULT_WINDOW_Y, int windowWidth = DEFAULT_WINDOW_WIDTH, int windowHeight = DEFAULT_WINDOW_HEIGHT);
-	~WorldView();
+	virtual ~WorldView() override;;
 
-	void onUpdate(void);
-	void onResize(int w, int h);
-	void onClick(int button, int state, int x, int y);
-	void onDrag(int x, int y);
-	void onWheel(int wheel_number, int direction, int x, int y);
-	void onKeyboard(unsigned char key, int x, int y);
+	virtual void onUpdate(void) override;
+	virtual void onResize(int w, int h) override;
+	virtual void onClick(int button, int state, int x, int y) override;
+	virtual void onDrag(int x, int y) override;
+	virtual void onWheel(int wheel_number, int direction, int x, int y) override;
+	virtual void onKeyboard(unsigned char key, int x, int y) override;
 };
 

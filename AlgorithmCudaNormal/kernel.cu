@@ -21,6 +21,11 @@ void freeManaged(int *p)
 	cudaFree(p);
 }
 
+void cudaDeviceSynchronizeWrapper()
+{
+	cudaDeviceSynchronize();
+}
+
 __global__ void loop(int* matDst, int *matSrc, int width, int height)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -67,15 +72,32 @@ __global__ void loop(int* matDst, int *matSrc, int width, int height)
 	}
 }
 
-void logicForOneGeneration(int* matDst, int *numAlive, int *numBirth, int *numDie, int* matSrc, int width, int height)
+void logicForOneGeneration(int* matDst, int* matSrc, int width, int height)
 {
+	//cudaStream_t stream;
+	//cudaStreamCreate(&stream);
+	//cudaStreamAttachMemAsync(stream, matSrc, 0, cudaMemAttachHost);
+	//cudaStreamAttachMemAsync(stream, matDst, 0, cudaMemAttachSingle);
+	////cudaDeviceSynchronize();
+	//int blocksizeW = 16;
+	//int blocksizeH = 16;
+	//dim3 block(blocksizeW, blocksizeH);
+	//dim3 grid(width / blocksizeW, height / blocksizeH);
+	//loop <<<grid, block, 0, stream >>> (matDst, matSrc, width, height);
+	//cudaStreamSynchronize(stream);
+	//cudaStreamDestroy(stream);
+	//cudaDeviceSynchronize();
+	////cudaDeviceReset();
+
 	int blocksizeW = 16;
 	int blocksizeH = 16;
 	dim3 block(blocksizeW, blocksizeH);
 	dim3 grid(width / blocksizeW, height / blocksizeH);
-	loop <<<grid, block >>> (matDst, matSrc, width, height);
+	loop << <grid, block >> > (matDst, matSrc, width, height);
+
 	cudaDeviceSynchronize();
 	//cudaDeviceReset();
+
 }
 
 
