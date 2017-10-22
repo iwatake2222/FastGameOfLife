@@ -29,6 +29,7 @@ protected:
 	 * don't use 2-dimension array for copy operation later
 	 */
 	int *m_mat[2];
+	int *m_matDisplay;
 
 	/* command communication */
 	/* todo: rendezvous / mutex */
@@ -47,6 +48,8 @@ protected:
 	WORLD_INFORMATION m_info;
 
 private:
+	virtual void allocMemory(int **p, int size);
+	virtual void freeMemory(int *p);
 	virtual void gameLogic();
 
 private:
@@ -57,13 +60,14 @@ public:
 	LogicBase(int worldWidth, int worldHeigh);
 	virtual ~LogicBase();
 
+	void initialize();
+	void exit();
 	void startRun();
 	void stopRun();
 	void toggleRun();
 	void stepRun();
 
 	int* getDisplayMat();
-	void copyDisplayMat(int* matOut);
 
 	void toggleCell(int worldX, int worldY);
 	void setCell(int worldX, int worldY);

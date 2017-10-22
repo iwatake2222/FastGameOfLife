@@ -20,6 +20,7 @@ WorldContext::WorldContext()
 	WORLD_HEIGHT = ControllerView::getInstance()->m_worldHeight;
 
 	m_pLogic = LogicBase::generateLogic(ControllerView::getInstance()->m_worldAlgorithm, WORLD_WIDTH, WORLD_HEIGHT);
+	m_pLogic->initialize();
 	m_pView = new WorldView(this);
 	m_pAnalView = new AnalView(this);
 
@@ -44,6 +45,7 @@ WorldContext::~WorldContext()
 {
 	delete m_pAnalView;
 	delete m_pView;
+	m_pLogic->exit();
 	delete m_pLogic;
 }
 
@@ -110,8 +112,7 @@ void WorldContext::saveToFile(WorldContext* context)
 		fwprintf_s(fp, L"%d,%d\n", context->WORLD_WIDTH, context->WORLD_HEIGHT);
 
 		int x, y, prm;
-		int *mat = new int[context->WORLD_WIDTH * context->WORLD_HEIGHT];
-		context->m_pLogic->copyDisplayMat(mat);
+		int *mat = context->m_pLogic->getDisplayMat();
 		for (int y = 0; y < context->WORLD_HEIGHT; y++) {
 			int yIndex = context->WORLD_WIDTH * y;
 			for (int x = 0; x < context->WORLD_WIDTH; x++) {
@@ -121,7 +122,6 @@ void WorldContext::saveToFile(WorldContext* context)
 				}
 			}
 		}
-		delete mat;
 		fclose(fp);
 	} else {
 	}

@@ -3,22 +3,23 @@ class ILogic
 {
 public:
 	typedef struct {
-		unsigned int status;	// 0 = not running, 1 = running
-		unsigned int generation;
-		unsigned int numAlive;	// the number of total alive cells
-		unsigned int numBirth;	// the number of birth in the current generation
-		unsigned int numDie;		// the number of death in the current generation
-		unsigned int calcTime;	// the number of total alive cellsint calcTime;	// current calculation time [ms]
+		int status;	// 0 = not running, 1 = running
+		int generation;
+		int numAlive;	// the number of total alive cells
+		int numBirth;	// the number of birth in the current generation
+		int numDie;		// the number of death in the current generation
+		int calcTime;	// the number of total alive cellsint calcTime;	// current calculation time [ms]
 	} WORLD_INFORMATION;
 public:
 	virtual ~ILogic() {}
+	virtual void initialize() = 0;	// for thread
+	virtual void exit() = 0;		// for thread
 	/* for operation */
 	virtual void startRun() = 0;
 	virtual void stopRun() = 0;
 	virtual void toggleRun() = 0;
 	virtual void stepRun() = 0;
 	virtual int* getDisplayMat() = 0;
-	virtual void copyDisplayMat(int* matOut) = 0;
 	virtual void toggleCell(int worldX, int worldY) = 0;
 	virtual void setCell(int worldX, int worldY) = 0;
 	virtual void clearCell(int worldX, int worldY) = 0;

@@ -1,38 +1,45 @@
 #include "stdafx.h"
-#include "LogicNormal.h"
+#include "LogicNormalCuda.h"
+#include "algorithmCudaNormal.h"
 
+using namespace AlgorithmCudaNormal;
 
-LogicNormal::LogicNormal(int worldWidth, int worldHeight)  
+LogicNormalCuda::LogicNormalCuda(int worldWidth, int worldHeight)
 	: LogicBase(worldWidth, worldHeight)
 {
 }
 
-LogicNormal::~LogicNormal()
+LogicNormalCuda::~LogicNormalCuda()
 {
 }
 
-void LogicNormal::gameLogic() 
+void LogicNormalCuda::allocMemory(int **p, int size)
+{
+	allocManaged(p, size * sizeof(int));
+}
+
+void LogicNormalCuda::freeMemory(int *p)
+{
+	freeManaged(p);
+}
+
+
+void LogicNormalCuda::gameLogic()
 {
 	WORLD_INFORMATION info = { 0 };
 	info.generation = m_info.generation + 1;
 	info.status = m_info.status;
 	info.calcTime = m_info.calcTime;
 
-	/* four edges */
-	loopWithBorder(0, WORLD_WIDTH, 0, 1, &info);
-	loopWithBorder(0, WORLD_WIDTH, WORLD_HEIGHT-1, WORLD_HEIGHT, &info);
-	loopWithBorder(0, 1, 0, WORLD_HEIGHT, &info);
-	loopWithBorder(WORLD_WIDTH-1, WORLD_WIDTH, 0, WORLD_HEIGHT, &info);
+	logicForOneGeneration(m_mat[m_matIdNew], &(info.numAlive), &(info.numBirth), &(info.numDie), m_mat[m_matIdOld], WORLD_WIDTH, WORLD_HEIGHT);
 
-	/* for most area */
-	loopWithoutBorder(1, WORLD_WIDTH-1, 1, WORLD_HEIGHT-1, &info);
-
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	memcpy(m_matDisplay, m_mat[m_matIdNew], sizeof(int) * WORLD_WIDTH*WORLD_HEIGHT);
 
 	m_info = info;
 }
 
-void LogicNormal::loopWithBorder(int x0, int x1, int y0, int y1, WORLD_INFORMATION* info)
+void LogicNormalCuda::loopWithBorder(int x0, int x1, int y0, int y1, WORLD_INFORMATION* info)
 {
 	for (int y = y0; y < y1; y++) {
 		int yLine = WORLD_WIDTH * y;
@@ -77,7 +84,7 @@ void LogicNormal::loopWithBorder(int x0, int x1, int y0, int y1, WORLD_INFORMATI
 }
 
 /* don't check border, but fast */
-void LogicNormal::loopWithoutBorder(int x0, int x1, int y0, int y1, WORLD_INFORMATION* info)
+void LogicNormalCuda::loopWithoutBorder(int x0, int x1, int y0, int y1, WORLD_INFORMATION* info)
 {
 	for (int y = y0; y < y1; y++) {
 		int yLine = WORLD_WIDTH * y;

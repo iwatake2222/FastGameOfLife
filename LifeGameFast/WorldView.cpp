@@ -122,7 +122,7 @@ void WorldView::drawGrid()
 
 void WorldView::drawCells()
 {
-#define DRAW_CELLS_SAFE
+//#define DRAW_CELLS_SAFE
 #ifdef DRAW_CELLS_SAFE
 	int *mat = new int[WORLD_WIDTH * WORLD_HEIGHT];
 	m_pContext->m_pLogic->copyDisplayMat(mat);

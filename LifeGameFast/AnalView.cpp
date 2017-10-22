@@ -74,7 +74,7 @@ void AnalView::analyseInformation(ANAL_INFORMATION *info)
 {
 	int worldWidth = m_pContext->WORLD_WIDTH;
 	int worldHeight = m_pContext->WORLD_HEIGHT;
-#define DRAW_CELLS_SAFE
+//#define DRAW_CELLS_SAFE
 #ifdef DRAW_CELLS_SAFE
 	int *mat = new int[worldWidth * worldHeight];
 	m_pContext->m_pLogic->copyDisplayMat(mat);
@@ -109,7 +109,9 @@ void AnalView::analyseInformation(ANAL_INFORMATION *info)
 			}
 		}
 	}
+#ifdef DRAW_CELLS_SAFE
 	delete mat;
+#endif
 }
 
 void AnalView::displayInformationGraph()

@@ -8,7 +8,7 @@ ControllerView::ControllerView()
 
 	m_worldWidth = DEFAULT_WORLD_WIDTH;
 	m_worldHeight = DEFAULT_WORLD_HEIGHT;
-	m_worldAlgorithm = ALGORITHM_NORMAL;
+	m_worldAlgorithm = ALGORITHM_NORMAL_CUDA;
 	m_density = DEFAULT_CELLS_DENSITY;
 	m_prm1 = 0;
 	m_prm2 = 0;
