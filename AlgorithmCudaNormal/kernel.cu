@@ -11,33 +11,15 @@ namespace AlgorithmCudaNormal
 }	// indent guard
 #endif
 
-void allocManaged(int **p, int size)
-{
-	cudaMallocManaged(p, size);
-}
-
-void freeManaged(int *p)
-{
-	cudaFree(p);
-}
-
-void cudaDeviceSynchronizeWrapper()
-{
-	cudaDeviceSynchronize();
-}
 
 __global__ void loop(int* matDst, int *matSrc, int width, int height)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
-	//printf("%d %d\n", x, y);
-
-	if (x >= width || y >= height) {
-		printf("%d %d\n", x, y);
-		return;
-	}
-
-	int yLine = y * width;
+	//if (x >= width || y >= height) {
+	//	printf("%d %d\n", x, y);
+	//	return;
+	//}
 
 	int cnt = 0;
 	for (int yy = y - 1; yy <= y + 1; yy++) {
@@ -53,6 +35,8 @@ __global__ void loop(int* matDst, int *matSrc, int width, int height)
 			}
 		}
 	}
+
+	int yLine = y * width;
 	if (matSrc[yLine + x] == 0) {
 		if (cnt == 3) {
 			// birth
@@ -72,34 +56,64 @@ __global__ void loop(int* matDst, int *matSrc, int width, int height)
 	}
 }
 
-void logicForOneGeneration(int* matDst, int* matSrc, int width, int height)
+void logicForOneGeneration(ALGORITHM_CUDA_NORMAL_PARAM *param, int* matDst, int* matSrc, int width, int height)
 {
-	//cudaStream_t stream;
-	//cudaStreamCreate(&stream);
-	//cudaStreamAttachMemAsync(stream, matSrc, 0, cudaMemAttachHost);
-	//cudaStreamAttachMemAsync(stream, matDst, 0, cudaMemAttachSingle);
-	////cudaDeviceSynchronize();
-	//int blocksizeW = 16;
-	//int blocksizeH = 16;
-	//dim3 block(blocksizeW, blocksizeH);
-	//dim3 grid(width / blocksizeW, height / blocksizeH);
-	//loop <<<grid, block, 0, stream >>> (matDst, matSrc, width, height);
-	//cudaStreamSynchronize(stream);
-	//cudaStreamDestroy(stream);
-	//cudaDeviceSynchronize();
-	////cudaDeviceReset();
+	cudaMemcpy(param->devMatSrc, matSrc, width * height * sizeof(int), cudaMemcpyHostToDevice);
 
 	int blocksizeW = 16;
 	int blocksizeH = 16;
 	dim3 block(blocksizeW, blocksizeH);
 	dim3 grid(width / blocksizeW, height / blocksizeH);
-	loop << <grid, block >> > (matDst, matSrc, width, height);
-
+	loop <<<grid, block >>> (param->devMatDst, param->devMatSrc, width, height);
 	cudaDeviceSynchronize();
-	//cudaDeviceReset();
 
+	cudaMemcpy(matDst, param->devMatDst, width * height * sizeof(int), cudaMemcpyDeviceToHost);
 }
 
+void cudaInitialize(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
+{
+	cudaMalloc((void**)&param->devMatSrc, width * height * sizeof(int));
+	cudaMalloc((void**)&param->devMatDst, width * height * sizeof(int));
+}
+
+void cudaFinalize(ALGORITHM_CUDA_NORMAL_PARAM *param)
+{
+	cudaFree(param->devMatSrc);
+	cudaFree(param->devMatDst);
+	cudaDeviceReset();
+}
+
+
+/*
+ * Don't use cudaMallocManaged
+ * Memory access exception occurs when I call logicForOneGeneration from several threads
+ */
+#if 0
+void allocManaged(int **p, int size)
+{
+	cudaMallocManaged(p, size);
+}
+
+void freeManaged(int *p)
+{
+	cudaFree(p);
+}
+
+void cudaDeviceSynchronizeWrapper()
+{
+	cudaDeviceSynchronize();
+}
+
+void logicForOneGeneration(int* matDst, int* matSrc, int width, int height)
+{
+	int blocksizeW = 16;
+	int blocksizeH = 16;
+	dim3 block(blocksizeW, blocksizeH);
+	dim3 grid(width / blocksizeW, height / blocksizeH);
+	loop << <grid, block >> > (matDst, matSrc, width, height);
+	cudaDeviceSynchronize();
+}
+#endif
 
 
 

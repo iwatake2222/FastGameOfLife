@@ -11,7 +11,6 @@ static const double COLOR_3D_ALIVE2[] = { 1.0, 1.0, 0.2 };
 static const double COLOR_3D_ALIVE3[] = { 0.2, 1.0, 0.2 };
 static const double COLOR_3D_ALIVE4[] = { 0.2, 0.8, 1.0 };
 
-
 typedef enum {
 	ALGORITHM_NORMAL = 0,
 	ALGORITHM_NORMAL_MP,
