@@ -9,6 +9,7 @@ namespace AlgorithmCudaNormal
 typedef struct {
 	int *devMatSrc;
 	int *devMatDst;
+	int isFirstOperation;
 } ALGORITHM_CUDA_NORMAL_PARAM;
 
 #ifdef DLL_EXPORT

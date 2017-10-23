@@ -22,8 +22,8 @@ typedef enum {
 	ALGORITHM_AUTO = 99,	// from controller view
 } ALGORITHM;
 
-static const int DEFAULT_WORLD_WIDTH = 2048;
-static const int DEFAULT_WORLD_HEIGHT = 2048;
+static const int DEFAULT_WORLD_WIDTH = 4096;
+static const int DEFAULT_WORLD_HEIGHT = 4096;
 //static const int DEFAULT_WORLD_WIDTH = 512;
 //static const int DEFAULT_WORLD_HEIGHT = 512;
 static const int DEFAULT_CELLS_DENSITY = 20;

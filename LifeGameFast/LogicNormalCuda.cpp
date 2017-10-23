@@ -7,20 +7,6 @@ using namespace AlgorithmCudaNormal;
 LogicNormalCuda::LogicNormalCuda(int worldWidth, int worldHeight)
 	: LogicNormal(worldWidth, worldHeight)
 {
-	/* todo: should make it better */
-	/* in this class, m_mat must be shared with GPU */
-	/* don't use memory allocated by super class*/
-	//for (int i = 0; i < 2; i++) {
-	//	delete m_mat[i];
-	//	m_mat[i] = 0;
-	//}
-
-	//for (int i = 0; i < 2; i++) {
-	//	allocManaged(&m_mat[i], WORLD_WIDTH * WORLD_HEIGHT * sizeof(int));
-	//	memset(m_mat[i], 0x00, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
-	//}
-
-
 	cudaInitialize(&cudaParam, worldWidth, worldHeight);
 
 	/* save original m_matDisplay because it will be modified in this class*/
@@ -29,11 +15,6 @@ LogicNormalCuda::LogicNormalCuda(int worldWidth, int worldHeight)
 
 LogicNormalCuda::~LogicNormalCuda()
 {
-//	for (int i = 0; i < 2; i++) {
-//		freeManaged(m_mat[i]);
-//		m_mat[i] = 0;
-//	}
-
 	cudaFinalize(&cudaParam);
 
 	/* restore m_matDisplay because it will be freeed in base class */

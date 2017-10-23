@@ -56,6 +56,8 @@ __global__ void loop(int* matDst, int *matSrc, int width, int height)
 	}
 }
 
+#if 0
+/* always copy from host to device */
 void logicForOneGeneration(ALGORITHM_CUDA_NORMAL_PARAM *param, int* matDst, int* matSrc, int width, int height)
 {
 	cudaMemcpy(param->devMatSrc, matSrc, width * height * sizeof(int), cudaMemcpyHostToDevice);
@@ -70,10 +72,35 @@ void logicForOneGeneration(ALGORITHM_CUDA_NORMAL_PARAM *param, int* matDst, int*
 	cudaMemcpy(matDst, param->devMatDst, width * height * sizeof(int), cudaMemcpyDeviceToHost);
 }
 
+#else
+
+/* copy from host to device only at the first time */
+void logicForOneGeneration(ALGORITHM_CUDA_NORMAL_PARAM *param, int* matDst, int* matSrc, int width, int height)
+{
+	if (param->isFirstOperation != 0) {
+		/* after the 2nd time, devMatSrc is copied from devMatDst */
+		cudaMemcpy(param->devMatSrc, matSrc, width * height * sizeof(int), cudaMemcpyHostToDevice);
+		param->isFirstOperation = 0;
+	}
+
+	int blocksizeW = 16;
+	int blocksizeH = 16;
+	dim3 block(blocksizeW, blocksizeH);
+	dim3 grid(width / blocksizeW, height / blocksizeH);
+	loop << <grid, block >> > (param->devMatDst, param->devMatSrc, width, height);
+	cudaDeviceSynchronize();
+	cudaMemcpy(param->devMatSrc, param->devMatDst, width * height * sizeof(int), cudaMemcpyDeviceToDevice);
+
+	cudaMemcpy(matDst, param->devMatDst, width * height * sizeof(int), cudaMemcpyDeviceToHost);
+}
+#endif
+
+
 void cudaInitialize(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 {
 	cudaMalloc((void**)&param->devMatSrc, width * height * sizeof(int));
 	cudaMalloc((void**)&param->devMatDst, width * height * sizeof(int));
+	param->isFirstOperation = 1;
 }
 
 void cudaFinalize(ALGORITHM_CUDA_NORMAL_PARAM *param)
