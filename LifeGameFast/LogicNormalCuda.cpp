@@ -26,7 +26,7 @@ void LogicNormalCuda::gameLogic()
 {
 	m_info.generation++;
 
-	logicForOneGeneration(&cudaParam, m_mat[m_matIdNew], m_mat[m_matIdOld], WORLD_WIDTH, WORLD_HEIGHT);
+	cudaProcess(&cudaParam, m_mat[m_matIdNew], m_mat[m_matIdOld], WORLD_WIDTH, WORLD_HEIGHT, 1);
 
 	/* in this algorithm, it just show the same value as each cell */
 #if 1

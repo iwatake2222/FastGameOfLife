@@ -12,7 +12,7 @@ LogicNormalNonTorusMP::~LogicNormalNonTorusMP()
 }
 
 
-void LogicNormalNonTorusMP::loopWithBorderCheck(int x0, int x1, int y0, int y1)
+void LogicNormalNonTorusMP::processWithBorderCheck(int x0, int x1, int y0, int y1)
 {
 #pragma omp parallel for
 	for (int y = y0; y < y1; y++) {
@@ -38,7 +38,7 @@ void LogicNormalNonTorusMP::loopWithBorderCheck(int x0, int x1, int y0, int y1)
 }
 
 /* don't check border, but fast */
-void LogicNormalNonTorusMP::loopWithoutBorderCheck(int x0, int x1, int y0, int y1)
+void LogicNormalNonTorusMP::processWithoutBorderCheck(int x0, int x1, int y0, int y1)
 {
 #pragma omp parallel for
 	for (int y = y0; y < y1; y++) {

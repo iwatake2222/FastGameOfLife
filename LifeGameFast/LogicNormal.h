@@ -21,8 +21,8 @@ protected:
 
 protected:
 	virtual void gameLogic() override;
-	virtual void loopWithBorderCheck(int x0, int x1, int y0, int y1);
-	virtual void loopWithoutBorderCheck(int x0, int x1, int y0, int y1);
+	virtual void processWithBorderCheck(int x0, int x1, int y0, int y1);
+	virtual void processWithoutBorderCheck(int x0, int x1, int y0, int y1);
 	void updateCell(int x, int yLine, int cnt);
 
 public:

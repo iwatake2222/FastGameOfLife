@@ -11,8 +11,8 @@ WorldView::WorldView(WorldContext* pContext, int windowX, int windowY, int windo
 	/* fixed during lifespan */
 	WORLD_WIDTH = pContext->WORLD_WIDTH;
 	WORLD_HEIGHT = pContext->WORLD_HEIGHT;
-	WORLD_WIDTH_MARGIN = WORLD_WIDTH  * 0.1;
-	WORLD_HEIGHT_MARGIN = WORLD_HEIGHT * 0.1;
+	WORLD_WIDTH_MARGIN = WORLD_WIDTH  * 0.05;
+	WORLD_HEIGHT_MARGIN = WORLD_HEIGHT * 0.05;
 	m_pContext = pContext;
 
 	/* initial window size */

@@ -11,7 +11,7 @@ LogicNormalNonTorus::~LogicNormalNonTorus()
 }
 
 
-void LogicNormalNonTorus::loopWithBorderCheck(int x0, int x1, int y0, int y1)
+void LogicNormalNonTorus::processWithBorderCheck(int x0, int x1, int y0, int y1)
 {
 	for (int y = y0; y < y1; y++) {
 		int yLine = WORLD_WIDTH * y;

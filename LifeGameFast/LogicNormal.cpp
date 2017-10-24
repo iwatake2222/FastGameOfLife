@@ -25,8 +25,11 @@ LogicNormal::~LogicNormal()
 bool LogicNormal::toggleCell(int worldX, int worldY, int prm1, int prm2, int prm3, int prm4)
 {
 	if(LogicBase::toggleCell(worldX, worldY, prm1, prm2, prm3, prm4)) {
-		m_matDisplay[WORLD_WIDTH * worldY + worldX] = m_matDisplay[WORLD_WIDTH * worldY + worldX] == CELL_DEAD ? CELL_ALIVE : CELL_DEAD;
-		m_mat[m_matIdOld][WORLD_WIDTH * worldY + worldX] = m_mat[m_matIdOld][WORLD_WIDTH * worldY + worldX] == CELL_DEAD ? CELL_ALIVE : CELL_DEAD;
+		if (m_matDisplay[WORLD_WIDTH * worldY + worldX] == CELL_DEAD) {
+			setCell(worldX, worldY, prm1, prm2, prm3, prm4);
+		} else {
+			clearCell(worldX, worldY);
+		}
 		return true;
 	}
 	return false;
@@ -57,13 +60,13 @@ void LogicNormal::gameLogic()
 	m_info.generation++;
 
 	/* four edges */
-	loopWithBorderCheck(0, WORLD_WIDTH, 0, 1);
-	loopWithBorderCheck(0, WORLD_WIDTH, WORLD_HEIGHT-1, WORLD_HEIGHT);
-	loopWithBorderCheck(0, 1, 0, WORLD_HEIGHT);
-	loopWithBorderCheck(WORLD_WIDTH-1, WORLD_WIDTH, 0, WORLD_HEIGHT);
+	processWithBorderCheck(0, WORLD_WIDTH, 0, 1);
+	processWithBorderCheck(0, WORLD_WIDTH, WORLD_HEIGHT-1, WORLD_HEIGHT);
+	processWithBorderCheck(0, 1, 0, WORLD_HEIGHT);
+	processWithBorderCheck(WORLD_WIDTH-1, WORLD_WIDTH, 0, WORLD_HEIGHT);
 
 	/* for most area */
-	loopWithoutBorderCheck(1, WORLD_WIDTH-1, 1, WORLD_HEIGHT-1);
+	processWithoutBorderCheck(1, WORLD_WIDTH-1, 1, WORLD_HEIGHT-1);
 
 	/* in this algorithm, it just show the same value as each cell */
 	m_mutexMatDisplay.lock();	// wait if thread is copying matrix data 
@@ -75,7 +78,7 @@ void LogicNormal::gameLogic()
 	m_matIdNew = tempId;
 }
 
-void LogicNormal::loopWithBorderCheck(int x0, int x1, int y0, int y1)
+void LogicNormal::processWithBorderCheck(int x0, int x1, int y0, int y1)
 {
 	for (int y = y0; y < y1; y++) {
 		int yLine = WORLD_WIDTH * y;
@@ -100,7 +103,7 @@ void LogicNormal::loopWithBorderCheck(int x0, int x1, int y0, int y1)
 }
 
 /* don't check border, but fast */
-void LogicNormal::loopWithoutBorderCheck(int x0, int x1, int y0, int y1)
+void LogicNormal::processWithoutBorderCheck(int x0, int x1, int y0, int y1)
 {
 	for (int y = y0; y < y1; y++) {
 		int yLine = WORLD_WIDTH * y;

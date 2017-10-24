@@ -11,7 +11,7 @@ LogicNormalMP::~LogicNormalMP()
 {
 }
 
-void LogicNormalMP::loopWithBorderCheck(int x0, int x1, int y0, int y1)
+void LogicNormalMP::processWithBorderCheck(int x0, int x1, int y0, int y1)
 {
 #pragma omp parallel for
 	for (int y = y0; y < y1; y++) {
@@ -37,7 +37,7 @@ void LogicNormalMP::loopWithBorderCheck(int x0, int x1, int y0, int y1)
 }
 
 /* don't check border, but fast */
-void LogicNormalMP::loopWithoutBorderCheck(int x0, int x1, int y0, int y1)
+void LogicNormalMP::processWithoutBorderCheck(int x0, int x1, int y0, int y1)
 {
 #pragma omp parallel for
 	for (int y = y0; y < y1; y++) {

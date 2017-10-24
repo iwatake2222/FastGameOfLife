@@ -87,9 +87,11 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="kernel_0.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="referenceCode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="algorithmCudaNormal.h" />
