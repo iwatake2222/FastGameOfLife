@@ -5,13 +5,23 @@
 #include <string.h>
 #include "algorithmCudaNormal.h"
 
+#define CHECK(call)\
+do {\
+	const cudaError_t error = call;\
+	if (error != cudaSuccess) {\
+		printf("Error: %s:%d, ", __FILE__, __LINE__);\
+		printf("code:%d, reason: %s\n", error, cudaGetErrorString(error));\
+		exit(1);\
+	}\
+} while(0)
+
 namespace AlgorithmCudaNormal
 {
 #if 0
 }	// indent guard
 #endif
 
-__global__ void loop(int* matDst, int *matSrc, int width, int height)
+__global__ void loop_0(int* matDst, int *matSrc, int width, int height)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -56,47 +66,46 @@ __global__ void loop(int* matDst, int *matSrc, int width, int height)
 }
 
 /* use global memory. always copy from host to device */
-void process_0(ALGORITHM_CUDA_NORMAL_PARAM *param, int* matDst, int* matSrc, int width, int height, int genTimes)
+void process_0(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 {
-	cudaMemcpy(param->devMatSrc, matSrc, width * height * sizeof(int), cudaMemcpyHostToDevice);
-
-	int blocksizeW = 16;
-	int blocksizeH = 16;
+	int blocksizeW = BLOCK_SIZE_W;
+	int blocksizeH = BLOCK_SIZE_H;
 	dim3 block(blocksizeW, blocksizeH);
 	dim3 grid(width / blocksizeW, height / blocksizeH);
 
-	for (int gen = 0; gen < genTimes; gen++) {
-		loop << <grid, block >> > (param->devMatDst, param->devMatSrc, width, height);
-		cudaDeviceSynchronize();
-		if (gen+1 < genTimes) {
-			cudaMemcpy(param->devMatSrc, param->devMatDst, width * height * sizeof(int), cudaMemcpyDeviceToDevice);
-		}
-	}
+	CHECK(cudaMemcpy(param->devMatSrc, param->hostMatSrc, width * height * sizeof(int), cudaMemcpyHostToDevice));
 
-	cudaMemcpy(matDst, param->devMatDst, width * height * sizeof(int), cudaMemcpyDeviceToHost);
+	loop_0 <<< grid, block >>> (param->devMatDst, param->devMatSrc, width, height);
+	CHECK(cudaDeviceSynchronize());
+
+	CHECK(cudaMemcpy(param->hostMatDst, param->devMatDst, width * height * sizeof(int), cudaMemcpyDeviceToHost));
+
+	swapMat(param);
 }
 
 /* use global memory. copy from host to device only at the first time */
-void process_1(ALGORITHM_CUDA_NORMAL_PARAM *param, int* matDst, int* matSrc, int width, int height, int genTimes)
+void process_0_nocopy(ALGORITHM_CUDA_NORMAL_PARAM *param, int* matDst, int* matSrc, int width, int height, int genTimes)
 {
-	if (param->isFirstOperation != 0) {
-		/* after the 2nd time, devMatSrc is copied from devMatDst */
-		cudaMemcpy(param->devMatSrc, matSrc, width * height * sizeof(int), cudaMemcpyHostToDevice);
-		param->isFirstOperation = 0;
-	}
+	//if (param->isFirstOperation != 0) {
+	//	/* after the 2nd time, devMatSrc is copied from devMatDst */
+	//	CHECK(cudaMemcpy(param->devMatSrc, matSrc, width * height * sizeof(int), cudaMemcpyHostToDevice));
+	//	param->isFirstOperation = 0;
+	//}
 
-	int blocksizeW = 16;
-	int blocksizeH = 16;
-	dim3 block(blocksizeW, blocksizeH);
-	dim3 grid(width / blocksizeW, height / blocksizeH);
-	
-	for (int gen = 0; gen < genTimes; gen++) {
-		loop << <grid, block >> > (param->devMatDst, param->devMatSrc, width, height);
-		cudaDeviceSynchronize();
-		cudaMemcpy(param->devMatSrc, param->devMatDst, width * height * sizeof(int), cudaMemcpyDeviceToDevice);
-	}
+	//int blocksizeW = BLOCK_SIZE_W;
+	//int blocksizeH = BLOCK_SIZE_H;
+	//dim3 block(blocksizeW, blocksizeH);
+	//dim3 grid(width / blocksizeW, height / blocksizeH);
+	//
+	//for (int gen = 0; gen < genTimes; gen++) {
+	//	loop_0 <<< grid, block >>> (param->devMatDst, param->devMatSrc, width, height);
+	//	CHECK(cudaDeviceSynchronize());
+	//	int *temp = param->devMatSrc;
+	//	param->devMatSrc = param->devMatDst;
+	//	param->devMatDst = temp;
+	//}
 
-	cudaMemcpy(matDst, param->devMatDst, width * height * sizeof(int), cudaMemcpyDeviceToHost);
+	//CHECK(cudaMemcpy(matDst, param->devMatSrc, width * height * sizeof(int), cudaMemcpyDeviceToHost));
 }
 
 }

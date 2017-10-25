@@ -6,6 +6,8 @@ class LogicNormalCuda : public LogicNormal
 {
 private:
 	int *m_originalMatDisplay;
+	int *m_originalMat0;
+	int *m_originalMat1;
 	AlgorithmCudaNormal::ALGORITHM_CUDA_NORMAL_PARAM cudaParam;
 
 private:
