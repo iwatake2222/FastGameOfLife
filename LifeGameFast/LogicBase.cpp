@@ -18,6 +18,7 @@ LogicBase::LogicBase(int worldWidth, int worldHeight)
 	m_cmd = CMD_VIEW_2_LOGIC_NONE;
 	m_isCmdCompleted = true;
 	m_isCalculating = false;
+	m_isMatrixUpdated = true;
 
 	memset(&m_info, 0, sizeof(m_info));
 	m_info.calcTime = 999;
@@ -91,6 +92,7 @@ bool LogicBase::toggleCell(int worldX, int worldY, int prm1, int prm2, int prm3,
 {
 	if (m_info.status) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	if (worldX >= 0 && worldX < WORLD_WIDTH && worldY >= 0 && worldY < WORLD_HEIGHT) {
+		m_isMatrixUpdated = true;
 		return true;
 	}
 	return false;
@@ -100,6 +102,7 @@ bool LogicBase::setCell(int worldX, int worldY, int prm1, int prm2, int prm3, in
 {
 	if (m_isCalculating) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	if (worldX >= 0 && worldX < WORLD_WIDTH && worldY >= 0 && worldY < WORLD_HEIGHT) {
+		m_isMatrixUpdated = true;
 		return true;
 	}
 	return false;
@@ -109,6 +112,7 @@ bool LogicBase::clearCell(int worldX, int worldY)
 {
 	if (m_isCalculating) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	if (worldX >= 0 && worldX < WORLD_WIDTH && worldY >= 0 && worldY < WORLD_HEIGHT) {
+		m_isMatrixUpdated = true;
 		return true;
 	}
 	return false;

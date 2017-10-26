@@ -4,22 +4,34 @@
 #include "stdlib.h"
 #include <string.h>
 #include "algorithmCudaNormal.h"
-
-#define CHECK(call)\
-do {\
-	const cudaError_t error = call;\
-	if (error != cudaSuccess) {\
-		printf("Error: %s:%d, ", __FILE__, __LINE__);\
-		printf("code:%d, reason: %s\n", error, cudaGetErrorString(error));\
-		exit(1);\
-	}\
-} while(0)
+#include "algorithmCudaNormalInternal.h"
 
 namespace AlgorithmCudaNormal
 {
 #if 0
 }	// indent guard
 #endif
+
+__forceinline__ __device__ void updateCell(int* matDst, int* matSrc, int globalIndex, int cnt)
+{
+	if (matSrc[globalIndex] == 0) {
+		if (cnt == 3) {
+			// birth
+			matDst[globalIndex] = 1;
+		} else {
+			// keep dead
+			matDst[globalIndex] = 0;
+		}
+	} else {
+		if (cnt <= 2 || cnt >= 5) {
+			// die
+			matDst[globalIndex] = 0;
+		} else {
+			// keep alive (age++)
+			matDst[globalIndex] = matSrc[globalIndex] + 1;
+		}
+	}
+}
 
 __global__ void loop_0(int* matDst, int *matSrc, int width, int height)
 {
@@ -30,7 +42,7 @@ __global__ void loop_0(int* matDst, int *matSrc, int width, int height)
 	//	return;
 	//}
 
-	int cnt = 0;
+	register int cnt = 0;
 	for (int yy = y - 1; yy <= y + 1; yy++) {
 		int roundY = yy;
 		if (roundY >= height) roundY = 0;
@@ -44,25 +56,7 @@ __global__ void loop_0(int* matDst, int *matSrc, int width, int height)
 			}
 		}
 	}
-
-	int yLine = y * width;
-	if (matSrc[yLine + x] == 0) {
-		if (cnt == 3) {
-			// birth
-			matDst[yLine + x] = 1;
-		} else {
-			// keep dead
-			matDst[yLine + x] = 0;
-		}
-	} else {
-		if (cnt <= 2 || cnt >= 5) {
-			// die
-			matDst[yLine + x] = 0;
-		} else {
-			// keep alive (age++)
-			matDst[yLine + x] = matSrc[yLine + x] + 1;
-		}
-	}
+	updateCell(matDst, matSrc, y * width + x, cnt);
 }
 
 /* use global memory. always copy from host to device */

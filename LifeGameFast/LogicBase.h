@@ -35,6 +35,8 @@ protected:
 	/* status control */
 	bool m_isCalculating;
 
+	bool m_isMatrixUpdated;
+
 	/* matrix data to be displayed */
 	int *m_matDisplay;
 	std::mutex m_mutexMatDisplay; // to avoid logic thread update matrix while view thread is copying it

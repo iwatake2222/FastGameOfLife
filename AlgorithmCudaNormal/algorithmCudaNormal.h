@@ -6,9 +6,23 @@ namespace AlgorithmCudaNormal
 }	// indent guard
 #endif
 
-const static int BLOCK_SIZE_W = 16;
-const static int BLOCK_SIZE_H = 16;
-const static int NUM_STREAM = 4;
+//#define ALGORITHM_0
+//#define ALGORITHM_0_STREAM
+//#define ALGORITHM_1
+//#define ALGORITHM_2
+//#define ALGORITHM_2_STREAM
+#define ALGORITHM_3_STREAM
+
+const static int BLOCK_SIZE_W = 32;
+const static int BLOCK_SIZE_H = 32;
+const static int NUM_STREAM = 8;
+
+//const static int MEMORY_MARGIN = 0;	// 1 pixel for each edge
+#if defined(ALGORITHM_0) || defined(ALGORITHM_0_STREAM)
+const static int MEMORY_MARGIN = 0;
+#else
+const static int MEMORY_MARGIN = 1;	// 1 pixel for each edge
+#endif
 
 typedef struct {
 	int *devMatSrc;
@@ -18,8 +32,6 @@ typedef struct {
 	void* pStream[NUM_STREAM];	// type is cudaStream_t.
 	int isFirstOperation;
 } ALGORITHM_CUDA_NORMAL_PARAM;
-
-void swapMat(ALGORITHM_CUDA_NORMAL_PARAM *param);
 
 #ifdef DLL_EXPORT
 __declspec(dllexport) void cudaAllocManaged(int **p, int size);

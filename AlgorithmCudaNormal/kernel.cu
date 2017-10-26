@@ -4,16 +4,8 @@
 #include "stdlib.h"
 #include <string.h>
 #include "algorithmCudaNormal.h"
+#include "algorithmCudaNormalInternal.h"
 
-#define CHECK(call)\
-do {\
-	const cudaError_t error = call;\
-	if (error != cudaSuccess) {\
-		printf("Error: %s:%d, ", __FILE__, __LINE__);\
-		printf("code:%d, reason: %s\n", error, cudaGetErrorString(error));\
-		exit(1);\
-	}\
-} while(0)
 
 namespace AlgorithmCudaNormal
 {
@@ -23,15 +15,17 @@ namespace AlgorithmCudaNormal
 
 void cudaInitialize(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 {
-	CHECK(cudaMalloc((void**)&param->devMatSrc, width * height * sizeof(int)));
-	CHECK(cudaMalloc((void**)&param->devMatDst, width * height * sizeof(int)));
+	CHECK(cudaMalloc((void**)&param->devMatSrc, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int)));
+	CHECK(cudaMalloc((void**)&param->devMatDst, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int)));
+
 #if 1
-	CHECK(cudaMallocHost((void**)&param->hostMatSrc, width * height * sizeof(int)));
-	CHECK(cudaMallocHost((void**)&param->hostMatDst, width * height * sizeof(int)));
+	CHECK(cudaMallocHost((void**)&param->hostMatSrc, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int)));
+	CHECK(cudaMallocHost((void**)&param->hostMatDst, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int)));
 #else
-	param->hostMatSrc = new int[width * height];
-	param->hostMatDst = new int[width * height];
+	param->hostMatSrc = new int[(width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN)];
+	param->hostMatDst = new int[(width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN)];
 #endif
+
 	param->isFirstOperation = 1;
 
 	for (int i = 0; i < NUM_STREAM; i++) {
@@ -52,6 +46,7 @@ void cudaFinalize(ALGORITHM_CUDA_NORMAL_PARAM *param)
 
 	CHECK(cudaFree(param->devMatSrc));
 	CHECK(cudaFree(param->devMatDst));
+
 #if 1
 	CHECK(cudaFreeHost(param->hostMatSrc));
 	CHECK(cudaFreeHost(param->hostMatDst));
@@ -59,23 +54,34 @@ void cudaFinalize(ALGORITHM_CUDA_NORMAL_PARAM *param)
 	delete param->hostMatSrc;
 	delete param->hostMatDst;
 #endif
-	CHECK(cudaDeviceReset());
+
+	/* todo: call this at the really end of the application */
+	//CHECK(cudaDeviceReset());
 }
 
 void cudaProcess(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 {
-#if 0
+#if defined(ALGORITHM_0)
 	extern void process_0(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
 	process_0(param, width, height);
-#endif
-#if 1
+#elif defined(ALGORITHM_0_STREAM)
+	extern void process_0_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
+	process_0_stream(param, width, height);
+#elif defined(ALGORITHM_1)
 	extern void process_1(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
 	process_1(param, width, height);
+#elif defined(ALGORITHM_2)
+	extern void process_2(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
+	process_2(param, width, height);
+#elif defined(ALGORITHM_2_STREAM)
+	extern void process_2_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
+	process_2_stream(param, width, height);
+#elif defined(ALGORITHM_3_STREAM)
+	extern void process_3_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
+	process_3_stream(param, width, height);
 #endif
-#if 0
-	extern void process_0_nocopy(ALGORITHM_CUDA_NORMAL_PARAM *param, int* matDst, int* matSrc, int width, int height, int genTimes);
-	process_0_nocopy(param, matDst, matSrc, width, height, genTimes);
-#endif
+
+
 }
 
 void swapMat(ALGORITHM_CUDA_NORMAL_PARAM *param)

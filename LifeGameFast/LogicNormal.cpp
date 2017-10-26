@@ -39,7 +39,6 @@ bool LogicNormal::setCell(int worldX, int worldY, int prm1, int prm2, int prm3, 
 {
 	if (LogicBase::setCell(worldX, worldY, prm1, prm2, prm3, prm4)) {
 		m_matDisplay[WORLD_WIDTH * worldY + worldX] = CELL_ALIVE;
-		m_mat[m_matIdOld][WORLD_WIDTH * worldY + worldX] = CELL_ALIVE;
 		return true;
 	}
 	return false;
@@ -49,7 +48,6 @@ bool LogicNormal::clearCell(int worldX, int worldY)
 {
 	if (LogicBase::clearCell(worldX, worldY)) {
 		m_matDisplay[WORLD_WIDTH * worldY + worldX] = CELL_DEAD;
-		m_mat[m_matIdOld][WORLD_WIDTH * worldY + worldX] = CELL_DEAD;
 		return true;
 	}
 	return false;
@@ -58,6 +56,10 @@ bool LogicNormal::clearCell(int worldX, int worldY)
 void LogicNormal::gameLogic() 
 {
 	m_info.generation++;
+
+	if (m_isMatrixUpdated) {
+		memcpy(m_mat[m_matIdOld], m_matDisplay, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
+	}
 
 	/* four edges */
 	processWithBorderCheck(0, WORLD_WIDTH, 0, 1);

@@ -41,6 +41,13 @@ void processWithBorderCheck(int *matDst, int*matSrc, int width, int height)
 					}
 				}
 			}
+			//if (x == 8 && y == 0) {
+			//	printf("ref:\n");
+			//	printf("cnt = %d\n", cnt);
+			//	printf("%d %d %d\n", matSrc[(y - 1)*width + x - 1], matSrc[(y - 1)*width + x - 0], matSrc[(y - 1)*width + x + 1]);
+			//	printf("%d %d %d\n", matSrc[(y - 0)*width + x - 1], matSrc[(y - 0)*width + x - 0], matSrc[(y - 0)*width + x + 1]);
+			//	printf("%d %d %d\n", matSrc[(y + 1)*width + x - 1], matSrc[(y + 1)*width + x - 0], matSrc[(y + 1)*width + x + 1]);
+			//}
 			updateCell(matDst, matSrc, x, yLine, cnt);
 		}
 	}

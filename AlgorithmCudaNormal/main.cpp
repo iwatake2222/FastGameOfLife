@@ -10,25 +10,26 @@
 #include <future>
 
 #include "algorithmCudaNormal.h"
+#include "algorithmCudaNormalInternal.h"
 
 
 using namespace AlgorithmCudaNormal;
 void processWithBorderCheck(int *matDst, int*matSrc, int width, int height);
-void unitTest();
+void unitTest(int seed, int repeatNum);
 void runForAnalysis();
 void runReferenceCode(int *matDst, const int* const matSrc, int loopNum);
 void runTargetCode(int *matDst, const int* const matSrc, int loopNum);
 
-const int WIDTH = 4096;
-const int HEIGHT = 4096;
+const int WIDTH = 1 << 12;
+const int HEIGHT = 1 << 12;
 
 int main()
 {
-	unitTest();
+	//for(int i= 1; i < 100; i++) unitTest(i, i%2 + 2);
 	runForAnalysis();
 
 	printf("done\n");
-	getchar();
+	//getchar();
 	return 0;
 }
 
@@ -38,53 +39,50 @@ void runForAnalysis()
 	matSrc = new int[WIDTH * HEIGHT];
 	matResult0 = new int[WIDTH * HEIGHT];
 
-	// operate several times
-	for (int i = 0; i < 1; i++) {
-		/* populate input test data*/
-		srand(i);
-		for (int i = 0; i < WIDTH * HEIGHT; i++) {
-			matSrc[i] = (rand() % 10 == 0);
-		}
-
-		/* run target code */
-		runTargetCode(matResult0, matSrc, 1);
+	/* populate input test data*/
+	for (int i = 0; i < WIDTH * HEIGHT; i++) {
+		matSrc[i] = (rand() % 10 == 0);
 	}
+
+	/* run target code */
+	runTargetCode(matResult0, matSrc, 10);
 
 	delete matSrc;
 	delete matResult0;
 }
 
 
-void unitTest()
+void unitTest(int seed, int repeatNum)
 {
-	const static int RUN_GENERATION_NUM = 10;
 	int *matSrc, *matResult0, *matResult1;
 	matSrc = new int[WIDTH * HEIGHT];
 	matResult0 = new int[WIDTH * HEIGHT];
 	matResult1 = new int[WIDTH * HEIGHT];
 
 	/* populate input test data*/
-	srand(10);
+	srand(seed);
 	for (int i = 0; i < WIDTH * HEIGHT; i++) {
 		matSrc[i] = (rand() % 10 == 0);
 	}
+	
+	//printMatrix(matSrc, WIDTH, HEIGHT);
 
 	/* run reference code */
-	runReferenceCode(matResult0, matSrc, RUN_GENERATION_NUM);
+	runReferenceCode(matResult0, matSrc, repeatNum);
 
 	/* run target code */
-	runTargetCode(matResult1, matSrc, RUN_GENERATION_NUM);
+	runTargetCode(matResult1, matSrc, repeatNum);
 
 	/* compare the results */
 	int checkIndex = 0;
 	for (checkIndex = 0; checkIndex < WIDTH * HEIGHT; checkIndex++) {
 		if (matResult0[checkIndex] != matResult1[checkIndex]) {
-			printf("NG: %d\n", checkIndex);
+			printf("šššerrorššš: (%d, %d)\n", checkIndex%WIDTH, checkIndex/WIDTH);
 			break;
 		}
 	}
 	if (checkIndex == WIDTH * HEIGHT) {
-		printf("OK\n");
+		printf("pass\n");
 	}
 
 	delete matSrc;
@@ -115,7 +113,10 @@ void runTargetCode(int *matDst, const int* const matSrc, int loopNum)
 {
 	ALGORITHM_CUDA_NORMAL_PARAM param;
 	cudaInitialize(&param, WIDTH, HEIGHT);
-	memcpy(param.hostMatSrc, matSrc, WIDTH * HEIGHT * sizeof(int));
+	for (int y = 0; y < HEIGHT; y++) {
+		memcpy(param.hostMatSrc + ( (y + MEMORY_MARGIN) * (WIDTH + 2 * MEMORY_MARGIN)) + MEMORY_MARGIN, matSrc + WIDTH * y, WIDTH * sizeof(int));
+	}
+	
 	
 	std::chrono::system_clock::time_point  timeStart, timeEnd;
 	timeStart = std::chrono::system_clock::now();
@@ -126,17 +127,21 @@ void runTargetCode(int *matDst, const int* const matSrc, int loopNum)
 	int timeElapsed = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count();
 	printf("total process time = %d [usec]\n", timeElapsed);
 
-	memcpy(matDst, param.hostMatSrc, WIDTH * HEIGHT * sizeof(int));
+	for (int y = 0; y < HEIGHT; y++) {
+		memcpy(matDst + WIDTH * y, param.hostMatSrc + ((y + MEMORY_MARGIN) * (WIDTH + 2 * MEMORY_MARGIN)) + MEMORY_MARGIN, WIDTH * sizeof(int));
+	}
 
 	cudaFinalize(&param);
 }
 
 void printMatrix(int *mat, int width, int height)
 {
+	printf("\n");
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
 			printf("%d ", mat[y*width + x]);
 		}
 		printf("\n");
 	}
+	printf("\n");
 }
