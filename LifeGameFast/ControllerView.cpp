@@ -128,7 +128,7 @@ void TW_CALL ControllerView::onClickBtnStep(void * clientData)
 {
 	ControllerView* pControllerView = (ControllerView*)clientData;
 	if (pControllerView->m_pCurrentWorldContext && getInstance()->m_pCurrentWorldContext->m_pView)
-		pControllerView->m_pCurrentWorldContext->m_pView->onKeyboard('s', 0, 0);
+		pControllerView->m_pCurrentWorldContext->m_pView->onKeyboard('1', 0, 0);
 }
 
 void TW_CALL ControllerView::onClickBtnAlloc(void * clientData)
@@ -233,7 +233,7 @@ void ControllerView::initUI()
 	TwAddButton(m_pBar, "btnWorldQuit", ControllerView::onClickBtnWorldQuit, this, " label='Quit [q]' group='World Parameters' ");
 	
 	TwAddSeparator(m_pBar, NULL, NULL);
-	TwAddButton(m_pBar, "btnInformation", ControllerView::onClickBtnInformation, this, " label='show Information [i]' group='View' ");
+	TwAddButton(m_pBar, "btnInformation", ControllerView::onClickBtnInformation, this, " label='Show Information [i]' group='View' ");
 	TwAddVarRW(m_pBar, "drawInterval", TW_TYPE_INT32, &m_drawInterval, "min=1 max=10 step=1 label='Draw interval' group='View' ");
 	TwAddVarRW(m_pBar, "skipNum", TW_TYPE_INT32, &m_skipNum, "min=1 max=100 step=1 label='Skip' group='View' ");
 
@@ -242,8 +242,9 @@ void ControllerView::initUI()
 	TwAddButton(m_pBar, "textRClick", NULL, this, " label='Right drag to move area' group='Operations' ");
 	TwAddButton(m_pBar, "textWheel", NULL, this, " label='Wheel to zoom in/out' group='Operations' ");
 	TwAddButton(m_pBar, "textCClick", NULL, this, " label='Center click to initialize view' group='Operations' ");
+	TwAddButton(m_pBar, "textPattern", NULL, this, " label='[l] to load pattern, [s] to save pattern' group='Operations' ");
 	TwAddButton(m_pBar, "btnStartStop", ControllerView::onClickBtnStartStop, this, " label='Play [p]' group='Operations' ");
-	TwAddButton(m_pBar, "btnStep", ControllerView::onClickBtnStep, this, " label='Step [s]' group='Operations' ");
+	TwAddButton(m_pBar, "btnStep", ControllerView::onClickBtnStep, this, " label='Step [1]' group='Operations' ");
 	TwAddButton(m_pBar, "btnAlloc", ControllerView::onClickBtnAlloc, this, " label='Alloc [a]' group='Operations' ");
 	TwAddButton(m_pBar, "btnClear", ControllerView::onClickBtnClear, this, " label='Clear [c]' group='Operations' ");
 	TwAddButton(m_pBar, "btnAllocAll", ControllerView::onClickBtnAllocAll, this, " label='Alloc all [A]' group='Operations' ");

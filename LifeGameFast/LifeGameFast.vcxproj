@@ -157,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="AnalView.h" />
     <ClInclude Include="ControllerView.h" />
+    <ClInclude Include="FileAccessor.h" />
     <ClInclude Include="ILogic.h" />
     <ClInclude Include="IView.h" />
     <ClInclude Include="LogicNormalCuda.h" />
@@ -175,6 +176,7 @@
   <ItemGroup>
     <ClCompile Include="AnalView.cpp" />
     <ClCompile Include="ControllerView.cpp" />
+    <ClCompile Include="FileAccessor.cpp" />
     <ClCompile Include="LifeGameFast.cpp" />
     <ClCompile Include="LogicNormalCuda.cpp" />
     <ClCompile Include="LogicNormalNonTorus.cpp" />

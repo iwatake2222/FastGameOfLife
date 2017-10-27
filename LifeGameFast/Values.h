@@ -22,10 +22,10 @@ typedef enum {
 	ALGORITHM_AUTO = 99,	// from controller view
 } ALGORITHM;
 
-static const int DEFAULT_WORLD_WIDTH = 4096;
-static const int DEFAULT_WORLD_HEIGHT = 4096;
-//static const int DEFAULT_WORLD_WIDTH = 512;
-//static const int DEFAULT_WORLD_HEIGHT = 512;
+//static const int DEFAULT_WORLD_WIDTH = 4096;
+//static const int DEFAULT_WORLD_HEIGHT = 4096;
+static const int DEFAULT_WORLD_WIDTH = 512;
+static const int DEFAULT_WORLD_HEIGHT = 512;
 static const int DEFAULT_CELLS_DENSITY = 20;
 static const int DEFAULT_DRAW_INTERVAL = 1;
 static const int DEFAULT_SKIP_NUM = 1;

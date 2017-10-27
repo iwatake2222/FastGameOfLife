@@ -4,7 +4,7 @@
 #include "ControllerView.h"
 #include "AnalView.h"
 #include "Values.h"
-
+#include "FileAccessor.h"
 
 WorldView::WorldView(WorldContext* pContext, int windowX, int windowY, int windowWidth, int windowHeight)
 {
@@ -382,7 +382,7 @@ void WorldView::onKeyboard(unsigned char key, int x, int y)
 	case 'p':
 		m_pContext->m_pLogic->toggleRun();
 		break;
-	case 's':
+	case '1':
 		m_pContext->m_pLogic->stepRun();
 		break;
 	case 'i':
@@ -399,7 +399,52 @@ void WorldView::onKeyboard(unsigned char key, int x, int y)
 		ControllerView::getInstance()->setCurrentWorldContext(NULL);
 		delete m_pContext;
 		break;
+	case 'l':
+	{
+		/* load pettern file */
+		WCHAR path[MAX_PATH];
+		int offsetX, offsetY, prm;
+		if (FileAccessor::getFilepath(path, TEXT("")) && FileAccessor::startReadingPattern(path)) {
+			while (FileAccessor::readPattern(&offsetX, &offsetY, &prm)) {
+				int x = (m_worldVisibleX0 + m_worldVisibleX1) / 2 + offsetX;
+				int y = (m_worldVisibleY0 + m_worldVisibleY1) / 2 - offsetY;
+				if (prm != 0) {
+					m_pContext->m_pLogic->setCell(x, y);
+				} else {
+					m_pContext->m_pLogic->clearCell(x, y);
+				}
+			}
+			FileAccessor::stop();
+		}
+		break;
+	}
+	case 's':
+	{
+		/* load pettern file */
+		WCHAR path[MAX_PATH];
+		if (FileAccessor::getFilepath(path, TEXT("")) && FileAccessor::startWritingPattern(path)) {
+			int x0 = m_worldVisibleX0 > 0 ? m_worldVisibleX0 : 0;
+			int x1 = m_worldVisibleX1 < WORLD_WIDTH ? m_worldVisibleX1 : WORLD_WIDTH - 1;
+			int y0 = m_worldVisibleY0 > 0 ? m_worldVisibleY0 : 0;
+			int y1 = m_worldVisibleY1 < WORLD_HEIGHT ? m_worldVisibleY1 : WORLD_HEIGHT - 1;
+
+			bool isNewline = false;
+			int *mat = m_pContext->m_pLogic->getDisplayMat();
+			for (int y = y1; y >= y0; y--) {
+				int yIndex = WORLD_WIDTH * y;
+				for (int x = x0; x <= x1; x++) {
+					int prm = mat[yIndex + x];
+					FileAccessor::writePattern(prm, isNewline);
+					isNewline = false;
+				}
+				isNewline = true;
+			}
+			FileAccessor::stop();
+		}
+		break;
+	}
 	default:
 		break;
 	}
 }
+
