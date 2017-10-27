@@ -26,7 +26,7 @@ void cudaInitialize(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 	param->hostMatDst = new int[(width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN)];
 #endif
 
-	param->isFirstOperation = 1;
+	param->isMatrixUpdated = 1;
 
 	for (int i = 0; i < NUM_STREAM; i++) {
 		cudaStream_t *stream;
@@ -59,28 +59,33 @@ void cudaFinalize(ALGORITHM_CUDA_NORMAL_PARAM *param)
 	//CHECK(cudaDeviceReset());
 }
 
-void cudaProcess(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
+void cudaProcess(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height, int repeatNum)
 {
+	for (int i = 0; i < repeatNum; i++) {
 #if defined(ALGORITHM_0)
-	extern void process_0(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
-	process_0(param, width, height);
+		extern void process_0(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
+		process_0(param, width, height);
 #elif defined(ALGORITHM_0_STREAM)
-	extern void process_0_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
-	process_0_stream(param, width, height);
+		extern void process_0_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
+		process_0_stream(param, width, height);
 #elif defined(ALGORITHM_1)
-	extern void process_1(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
-	process_1(param, width, height);
+		extern void process_1(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
+		process_1(param, width, height);
 #elif defined(ALGORITHM_2)
-	extern void process_2(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
-	process_2(param, width, height);
+		extern void process_2(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
+		process_2(param, width, height);
 #elif defined(ALGORITHM_2_STREAM)
-	extern void process_2_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
-	process_2_stream(param, width, height);
+		extern void process_2_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
+		process_2_stream(param, width, height);
 #elif defined(ALGORITHM_3_STREAM)
-	extern void process_3_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
-	process_3_stream(param, width, height);
+		extern void process_3_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
+		process_3_stream(param, width, height);
+#elif defined(ALGORITHM_3_REPEAT)
+		extern void process_3_repeat(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height, int repeatNum);
+		process_3_repeat(param, width, height, repeatNum);
+		break;
 #endif
-
+	}
 
 }
 

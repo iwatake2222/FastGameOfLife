@@ -5,7 +5,7 @@
 class LogicNormalCuda : public LogicNormal
 {
 private:
-	AlgorithmCudaNormal::ALGORITHM_CUDA_NORMAL_PARAM cudaParam;
+	AlgorithmCudaNormal::ALGORITHM_CUDA_NORMAL_PARAM m_cudaParam;
 
 private:
 	virtual void gameLogic() override;
@@ -13,5 +13,6 @@ private:
 public:
 	LogicNormalCuda(int worldWidth, int worldHeight);
 	virtual ~LogicNormalCuda() override;
+	virtual int* getDisplayMat() override;
 
 };

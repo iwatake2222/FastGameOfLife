@@ -56,16 +56,16 @@ __global__ void loop_0_stream(int* matDst, int *matSrc, int width, int height, i
 	updateCell(matDst, matSrc, y * width + x, cnt);
 }
 
-
-/* Divide area into several landscape area, and each stream processes each area */
+/* The most basic algorithm
+ *   with stream (divide area into several landscape area, and each stream processes each area)
+ */
 void process_0_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 {
-	int blocksizeW = BLOCK_SIZE_W;
-	int blocksizeH = BLOCK_SIZE_H;
-	dim3 block(blocksizeW, blocksizeH);
-	dim3 grid(width / blocksizeW, height / blocksizeH / NUM_STREAM);
+	dim3 block(BLOCK_SIZE_W, BLOCK_SIZE_H);
+	dim3 grid(width / BLOCK_SIZE_W, height / BLOCK_SIZE_H / NUM_STREAM);
+	int heightStream = ceil((double)height / NUM_STREAM);
 
-	// copy border line data at first
+	/* copy border line data at first to simplyfy logic of each stream (no need to consider border line) */
 	for (int i = 0; i < NUM_STREAM; i++) {
 		int offsetFirstLine = (i * height / NUM_STREAM) * width;
 		CHECK(cudaMemcpy(param->devMatSrc + offsetFirstLine, param->hostMatSrc + offsetFirstLine, width * sizeof(int), cudaMemcpyHostToDevice));
@@ -73,13 +73,13 @@ void process_0_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 		CHECK(cudaMemcpy(param->devMatSrc + offsetLastLine, param->hostMatSrc + offsetLastLine, width * sizeof(int), cudaMemcpyHostToDevice));
 	}
 
+	/* create stream(copy(h2d), kernel, copy(d2h)) */
 	for (int i = 0; i < NUM_STREAM; i++) {
 		cudaStream_t* pStream = (cudaStream_t*)(param->pStream[i]);
-		int offsetY = i * height / NUM_STREAM;
-		int transferHeight = height / NUM_STREAM;
-		CHECK(cudaMemcpyAsync(param->devMatSrc + offsetY * width, param->hostMatSrc + offsetY * width, width * transferHeight * sizeof(int), cudaMemcpyHostToDevice, *pStream));
+		int offsetY = i * heightStream;
+		CHECK(cudaMemcpyAsync(param->devMatSrc + offsetY * width, param->hostMatSrc + offsetY * width, width * heightStream * sizeof(int), cudaMemcpyHostToDevice, *pStream));
 		loop_0_stream << < grid, block, 0, *pStream >> > (param->devMatDst, param->devMatSrc, width, height, offsetY);
-		CHECK(cudaMemcpyAsync(param->hostMatDst + offsetY * width, param->devMatDst + offsetY * width, width * transferHeight * sizeof(int), cudaMemcpyDeviceToHost, *pStream));
+		CHECK(cudaMemcpyAsync(param->hostMatDst + offsetY * width, param->devMatDst + offsetY * width, width * heightStream * sizeof(int), cudaMemcpyDeviceToHost, *pStream));
 	}
 
 	for (int i = 0; i < NUM_STREAM; i++) {
@@ -88,6 +88,7 @@ void process_0_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 	}
 
 	swapMat(param);
+	// hostMatSrc is ready to be displayed
 }
 
 

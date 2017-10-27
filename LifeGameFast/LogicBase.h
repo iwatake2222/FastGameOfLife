@@ -36,6 +36,7 @@ protected:
 	bool m_isCalculating;
 
 	bool m_isMatrixUpdated;
+	int m_lastRetrievedGenration;
 
 	/* matrix data to be displayed */
 	int *m_matDisplay;
@@ -63,8 +64,8 @@ public:
 	virtual void stopRun() override final;
 	virtual void toggleRun() override final;
 	virtual void stepRun() override final;
-	virtual int* getDisplayMat() override final;
-
+	
+	virtual int* getDisplayMat() override;
 	virtual bool toggleCell(int worldX, int worldY, int prm1 = 0, int prm2 = 0, int prm3 = 0, int prm4 = 0) override;
 	virtual bool setCell(int worldX, int worldY, int prm1 = 0, int prm2 = 0, int prm3 = 0, int prm4 = 0) override;
 	virtual bool clearCell(int worldX, int worldY) override;

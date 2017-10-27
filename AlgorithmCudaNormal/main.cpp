@@ -17,15 +17,16 @@ using namespace AlgorithmCudaNormal;
 void processWithBorderCheck(int *matDst, int*matSrc, int width, int height);
 void unitTest(int seed, int repeatNum);
 void runForAnalysis();
-void runReferenceCode(int *matDst, const int* const matSrc, int loopNum);
-void runTargetCode(int *matDst, const int* const matSrc, int loopNum);
+void runReferenceCode(int *matDst, const int* const matSrc, int repeatNum);
+void runTargetCode(int *matDst, const int* const matSrc, int repeatNum);
 
 const int WIDTH = 1 << 12;
 const int HEIGHT = 1 << 12;
+const int REPEAT_NUM = 10;
 
 int main()
 {
-	//for(int i= 1; i < 100; i++) unitTest(i, i%2 + 2);
+	//for(int i= 1; i < 100; i++) unitTest(i, i%2 + REPEAT_NUM);
 	runForAnalysis();
 
 	printf("done\n");
@@ -45,7 +46,7 @@ void runForAnalysis()
 	}
 
 	/* run target code */
-	runTargetCode(matResult0, matSrc, 10);
+	runTargetCode(matResult0, matSrc, REPEAT_NUM);
 
 	delete matSrc;
 	delete matResult0;
@@ -90,14 +91,14 @@ void unitTest(int seed, int repeatNum)
 	delete matResult1;
 }
 
-void runReferenceCode(int *matDst, const int* const matSrc, int loopNum)
+void runReferenceCode(int *matDst, const int* const matSrc, int repeatNum)
 {
 	int *matOld, *matNew;
 	matOld = new int[WIDTH * HEIGHT];
 	matNew = new int[WIDTH * HEIGHT];
 	memcpy(matOld, matSrc, WIDTH * HEIGHT * sizeof(int));
 
-	for (int i = 0; i < loopNum; i++) {
+	for (int i = 0; i < repeatNum; i++) {
 		processWithBorderCheck(matNew, matOld, WIDTH, HEIGHT);
 		int *matTemp = matNew;
 		matNew = matOld;
@@ -109,7 +110,7 @@ void runReferenceCode(int *matDst, const int* const matSrc, int loopNum)
 	delete matOld;
 }
 
-void runTargetCode(int *matDst, const int* const matSrc, int loopNum)
+void runTargetCode(int *matDst, const int* const matSrc, int repeatNum)
 {
 	ALGORITHM_CUDA_NORMAL_PARAM param;
 	cudaInitialize(&param, WIDTH, HEIGHT);
@@ -120,9 +121,7 @@ void runTargetCode(int *matDst, const int* const matSrc, int loopNum)
 	
 	std::chrono::system_clock::time_point  timeStart, timeEnd;
 	timeStart = std::chrono::system_clock::now();
-	for (int i = 0; i < loopNum; i++) {
-		cudaProcess(&param, WIDTH, HEIGHT);
-	}
+	cudaProcess(&param, WIDTH, HEIGHT, repeatNum);
 	timeEnd = std::chrono::system_clock::now();
 	int timeElapsed = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count();
 	printf("total process time = %d [usec]\n", timeElapsed);

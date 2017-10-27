@@ -34,14 +34,14 @@ __forceinline__ __device__ void updateCell(int* matDst, int* matSrc, int globalI
 	}
 }
 
-__global__ void loop_1_withoutBorderCheck(int* matDst, int *matSrc, int width, int height, int devMatWidth, int devMatHeight)
+__global__ void loop_1_withoutBorderCheck(int* matDst, int *matSrc, int width, int height, int memWidth, int memHeight)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
 
 	int cnt = 0;
 	for (int yy = y; yy <= y + 2; yy++) {
-		int yIndex = devMatWidth * yy;
+		int yIndex = memWidth * yy;
 		for (int xx = x; xx <= x + 2; xx++) {
 			if (matSrc[yIndex + xx] != 0) {
 				cnt++;
@@ -49,89 +49,89 @@ __global__ void loop_1_withoutBorderCheck(int* matDst, int *matSrc, int width, i
 		}
 	}
 
-	updateCell(matDst, matSrc, devMatWidth * (y + 1) + (x + 1), cnt);
+	updateCell(matDst, matSrc, memWidth * (y + 1) + (x + 1), cnt);
 }
 
 
-__global__ void copyAliasRow(int* devMat, int devMatWidth, int devMatHeight)
+__global__ void copyAliasRow(int* devMat, int memWidth, int memHeight)
 {
 	int devMatX = blockIdx.x * blockDim.x + threadIdx.x + 1;
-	devMat[devMatWidth * 0 + devMatX] = devMat[devMatWidth * (devMatHeight - 2) + devMatX];
-	devMat[devMatWidth * (devMatHeight - 1) + devMatX] = devMat[devMatWidth * 1 + devMatX];
+	devMat[memWidth * 0 + devMatX] = devMat[memWidth * (memHeight - 2) + devMatX];
+	devMat[memWidth * (memHeight - 1) + devMatX] = devMat[memWidth * 1 + devMatX];
 }
 
-__global__ void copyAliasCol(int* devMat, int devMatWidth, int devMatHeight)
+__global__ void copyAliasCol(int* devMat, int memWidth, int memHeight)
 {
 	int devMatY = blockIdx.x * blockDim.x + threadIdx.x + 1;
-	devMat[devMatWidth * devMatY + 0] = devMat[devMatWidth * devMatY + (devMatWidth - 2)];
-	devMat[devMatWidth * devMatY + devMatWidth - 1] = devMat[devMatWidth * devMatY + 1];
+	devMat[memWidth * devMatY + 0] = devMat[memWidth * devMatY + (memWidth - 2)];
+	devMat[memWidth * devMatY + memWidth - 1] = devMat[memWidth * devMatY + 1];
 }
 
-/* use global memory. always copy from host to device */
+/* The algorithm using alias area on 4 corners and edges so that main logic doen't need to consider border
+ *  Note: matrix memory size is (1 + width + 1, 1 + height + 1) (the real matrix is [(1,1) - (memWidth - 2, memHeight - 2)]
+*/
 void process_1(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 {
-	int devMatWidth =  width + 2 * MEMORY_MARGIN;
-	int devMatHeight =  height + 2 * MEMORY_MARGIN;
-	int blocksizeW = BLOCK_SIZE_W;
-	int blocksizeH = BLOCK_SIZE_H;
-	dim3 block(blocksizeW, blocksizeH, 1);
-	dim3 grid(width / blocksizeW, height / blocksizeH, 1);
+	int memWidth =  width + 2 * MEMORY_MARGIN;
+	int memHeight =  height + 2 * MEMORY_MARGIN;
+	dim3 block(BLOCK_SIZE_W, BLOCK_SIZE_H, 1);
+	dim3 grid(width / BLOCK_SIZE_W, height / BLOCK_SIZE_H, 1);
 
-	dim3 blockH(blocksizeH);
-	dim3 gridH(height / blocksizeH);
+	dim3 blockH(BLOCK_SIZE_H);
+	dim3 gridH(height / BLOCK_SIZE_H);
 
-	dim3 blockW(blocksizeW);
-	dim3 gridW(width / blocksizeW);
+	dim3 blockW(BLOCK_SIZE_W);
+	dim3 gridW(width / BLOCK_SIZE_W);
 
-	/*** Copy host memory to device global memory***/
+	/*** Copy host memory to device global memory, and create alia area ***/
 #if 1
-	/* 1. create alias area in CPU at first*/
+	/* Create alias area in CPU at first, then copy all the memory area from host to device */
 	int *p = param->hostMatSrc;
-	memcpy(p, p + (devMatHeight - 2) * devMatWidth, devMatWidth * sizeof(int));
-	memcpy(p + (devMatHeight - 1) * devMatWidth, p + (1) * devMatWidth, devMatWidth * sizeof(int));
-	for (int y = 1; y < devMatHeight - 1; y++) {
-		p[devMatWidth * y + 0] = p[devMatWidth * y + devMatWidth - 2];
-		p[devMatWidth * y + devMatWidth - 1] = p[devMatWidth * y + 1];
+	memcpy(p, p + (memHeight - 2) * memWidth, memWidth * sizeof(int));
+	memcpy(p + (memHeight - 1) * memWidth, p + (1) * memWidth, memWidth * sizeof(int));
+	for (int y = 1; y < memHeight - 1; y++) {
+		p[memWidth * y + 0] = p[memWidth * y + memWidth - 2];
+		p[memWidth * y + memWidth - 1] = p[memWidth * y + 1];
 	}
-	p[devMatWidth * 0                  + 0]               = p[devMatWidth * (devMatHeight - 2) + devMatWidth - 2];
-	p[devMatWidth * 0                  + devMatWidth - 1] = p[devMatWidth * (devMatHeight - 2) + 1];
-	p[devMatWidth * (devMatHeight - 1) + 0]               = p[devMatWidth * (1)                + devMatWidth - 2];
-	p[devMatWidth * (devMatHeight - 1) + devMatWidth - 1] = p[devMatWidth * (1)                + 1];
+	p[memWidth * 0                  + 0]               = p[memWidth * (memHeight - 2) + memWidth - 2];
+	p[memWidth * 0                  + memWidth - 1] = p[memWidth * (memHeight - 2) + 1];
+	p[memWidth * (memHeight - 1) + 0]               = p[memWidth * (1)                + memWidth - 2];
+	p[memWidth * (memHeight - 1) + memWidth - 1] = p[memWidth * (1)                + 1];
 
-	/* 2. then, copy all the area */
-	CHECK(cudaMemcpy(param->devMatSrc, param->hostMatSrc, devMatWidth * devMatHeight * sizeof(int), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(param->devMatSrc, param->hostMatSrc, memWidth * memHeight * sizeof(int), cudaMemcpyHostToDevice));
 #else
-	/* [ (0, 0) - (width-1), (height-1) ] -> [ (1, 1) - (devMatWidth-2), (devMatHeight-2) ] */
-	CHECK(cudaMemcpy(param->devMatSrc + (devMatWidth * 1) + MEMORY_MARGIN, param->hostMatSrc + (devMatWidth * 1) + MEMORY_MARGIN, devMatWidth * height * sizeof(int), cudaMemcpyHostToDevice));
+	/* Copy world area from host to device, then create alias area in device memory */
+	/* [ (0, 0) - (width-1), (height-1) ] -> [ (1, 1) - (memWidth-2), (memHeight-2) ] */
+	CHECK(cudaMemcpy(param->devMatSrc + (memWidth * 1) + MEMORY_MARGIN, param->hostMatSrc + (memWidth * 1) + MEMORY_MARGIN, memWidth * height * sizeof(int), cudaMemcpyHostToDevice));
 	
-	/*** Create alias area ***/
 	/* create alias lines in device global memory
-	 * [(1, devMatHeight-2) - (devMatWidth-2, devMatHeight-2)] -> [(1, 0) - (devMatWidth-2, 0)]
-	 * [(1, 1) - (devMatWidth-2, 1)] -> [(1, devMatHeight-1) - (devMatWidth-2, devMatHeight-1)]
+	 * [(1, memHeight-2) - (memWidth-2, memHeight-2)] -> [(1, 0) - (memWidth-2, 0)]
+	 * [(1, 1) - (memWidth-2, 1)] -> [(1, memHeight-1) - (memWidth-2, memHeight-1)]
 	 */
-	copyAliasRow << < gridW, blockW >> > (param->devMatSrc, devMatWidth, devMatHeight);
+	copyAliasRow << < gridW, blockW >> > (param->devMatSrc, memWidth, memHeight);
 
 	/* create alias columns in device global memory
-	* [(devMatWidth-2, 1) - (devMatWidth-2, devMatHeight-2)] -> [(0, 1) - (0, devMatHeight-2)]
-	* [(1, 1) - (1, devMatHeight-2)] -> [(devMatWidth-1, 1) - (devMatWidth-1, devMatHeight-2)]
+	* [(memWidth-2, 1) - (memWidth-2, memHeight-2)] -> [(0, 1) - (0, memHeight-2)]
+	* [(1, 1) - (1, memHeight-2)] -> [(memWidth-1, 1) - (memWidth-1, memHeight-2)]
 	*/
-	copyAliasCol << < gridH, blockH >> > (param->devMatSrc, devMatWidth, devMatHeight);
+	copyAliasCol << < gridH, blockH >> > (param->devMatSrc, memWidth, memHeight);
 	//CHECK(cudaDeviceSynchronize());
 
 	/* create alias dots for four corners in device global memory */
-	CHECK(cudaMemcpy(param->devMatSrc + devMatWidth * (0) + 0, param->devMatSrc + devMatWidth * (devMatHeight - 2) + devMatWidth - 2, 1 * sizeof(int), cudaMemcpyDeviceToDevice));
-	CHECK(cudaMemcpy(param->devMatSrc + devMatWidth * (0) + devMatWidth - 1, param->devMatSrc + devMatWidth * (devMatHeight - 2) + 1, 1 * sizeof(int), cudaMemcpyDeviceToDevice));
-	CHECK(cudaMemcpy(param->devMatSrc + devMatWidth * (devMatHeight - 1) + 0, param->devMatSrc + devMatWidth * (1) + devMatWidth - 2, 1 * sizeof(int), cudaMemcpyDeviceToDevice));
-	CHECK(cudaMemcpy(param->devMatSrc + devMatWidth * (devMatHeight - 1) + devMatWidth - 1, param->devMatSrc + devMatWidth * (1) + 1, 1 * sizeof(int), cudaMemcpyDeviceToDevice));
+	CHECK(cudaMemcpy(param->devMatSrc + memWidth * (0) + 0, param->devMatSrc + memWidth * (memHeight - 2) + memWidth - 2, 1 * sizeof(int), cudaMemcpyDeviceToDevice));
+	CHECK(cudaMemcpy(param->devMatSrc + memWidth * (0) + memWidth - 1, param->devMatSrc + memWidth * (memHeight - 2) + 1, 1 * sizeof(int), cudaMemcpyDeviceToDevice));
+	CHECK(cudaMemcpy(param->devMatSrc + memWidth * (memHeight - 1) + 0, param->devMatSrc + memWidth * (1) + memWidth - 2, 1 * sizeof(int), cudaMemcpyDeviceToDevice));
+	CHECK(cudaMemcpy(param->devMatSrc + memWidth * (memHeight - 1) + memWidth - 1, param->devMatSrc + memWidth * (1) + 1, 1 * sizeof(int), cudaMemcpyDeviceToDevice));
 #endif
 
 	/*** operate logic without border check ***/
-	loop_1_withoutBorderCheck << < grid, block >> > (param->devMatDst, param->devMatSrc, width, height, devMatWidth, devMatHeight);
+	loop_1_withoutBorderCheck << < grid, block >> > (param->devMatDst, param->devMatSrc, width, height, memWidth, memHeight);
 	CHECK(cudaDeviceSynchronize());
 	
-	CHECK(cudaMemcpy(param->hostMatDst + (devMatWidth * 1) + MEMORY_MARGIN, param->devMatDst + (devMatWidth * 1) + MEMORY_MARGIN, devMatWidth * height * sizeof(int), cudaMemcpyDeviceToHost));
+	CHECK(cudaMemcpy(param->hostMatDst + (memWidth * 1) + MEMORY_MARGIN, param->devMatDst + (memWidth * 1) + MEMORY_MARGIN, memWidth * height * sizeof(int), cudaMemcpyDeviceToHost));
 
 	swapMat(param);
+	// hostMatSrc is ready to be displayed
 }
 
 

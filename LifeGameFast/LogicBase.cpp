@@ -23,6 +23,7 @@ LogicBase::LogicBase(int worldWidth, int worldHeight)
 	memset(&m_info, 0, sizeof(m_info));
 	m_info.calcTime = 999;
 	m_info.generation = 1;
+	m_lastRetrievedGenration = m_info.generation;
 }
 
 LogicBase::~LogicBase()
@@ -80,11 +81,7 @@ void LogicBase::stepRun()
 }
 
 int* LogicBase::getDisplayMat() {
-	int *ret;
-	m_mutexMatDisplay.lock();	// wait if thread is copying matrix data 
-	ret = m_matDisplay;
-	m_mutexMatDisplay.unlock();
-	return ret;
+	return m_matDisplay;
 }
 
 

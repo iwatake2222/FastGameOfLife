@@ -59,13 +59,12 @@ __global__ void loop_0(int* matDst, int *matSrc, int width, int height)
 	updateCell(matDst, matSrc, y * width + x, cnt);
 }
 
-/* use global memory. always copy from host to device */
+/* The most basic algorithm
+ */
 void process_0(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 {
-	int blocksizeW = BLOCK_SIZE_W;
-	int blocksizeH = BLOCK_SIZE_H;
-	dim3 block(blocksizeW, blocksizeH);
-	dim3 grid(width / blocksizeW, height / blocksizeH);
+	dim3 block(BLOCK_SIZE_W, BLOCK_SIZE_H);
+	dim3 grid(width / BLOCK_SIZE_W, height / BLOCK_SIZE_H);
 
 	CHECK(cudaMemcpy(param->devMatSrc, param->hostMatSrc, width * height * sizeof(int), cudaMemcpyHostToDevice));
 
@@ -75,31 +74,9 @@ void process_0(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 	CHECK(cudaMemcpy(param->hostMatDst, param->devMatDst, width * height * sizeof(int), cudaMemcpyDeviceToHost));
 
 	swapMat(param);
+
+	// hostMatSrc is ready to be displayed
 }
 
-/* use global memory. copy from host to device only at the first time */
-void process_0_nocopy(ALGORITHM_CUDA_NORMAL_PARAM *param, int* matDst, int* matSrc, int width, int height, int genTimes)
-{
-	//if (param->isFirstOperation != 0) {
-	//	/* after the 2nd time, devMatSrc is copied from devMatDst */
-	//	CHECK(cudaMemcpy(param->devMatSrc, matSrc, width * height * sizeof(int), cudaMemcpyHostToDevice));
-	//	param->isFirstOperation = 0;
-	//}
-
-	//int blocksizeW = BLOCK_SIZE_W;
-	//int blocksizeH = BLOCK_SIZE_H;
-	//dim3 block(blocksizeW, blocksizeH);
-	//dim3 grid(width / blocksizeW, height / blocksizeH);
-	//
-	//for (int gen = 0; gen < genTimes; gen++) {
-	//	loop_0 <<< grid, block >>> (param->devMatDst, param->devMatSrc, width, height);
-	//	CHECK(cudaDeviceSynchronize());
-	//	int *temp = param->devMatSrc;
-	//	param->devMatSrc = param->devMatDst;
-	//	param->devMatDst = temp;
-	//}
-
-	//CHECK(cudaMemcpy(matDst, param->devMatSrc, width * height * sizeof(int), cudaMemcpyDeviceToHost));
-}
 
 }

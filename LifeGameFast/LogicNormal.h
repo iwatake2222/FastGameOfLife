@@ -29,6 +29,7 @@ public:
 	LogicNormal(int worldWidth, int worldHeight);
 	virtual ~LogicNormal() override;
 
+	virtual int* getDisplayMat() override;
 	virtual bool toggleCell(int worldX, int worldY, int prm1, int prm2, int prm3, int prm4) override;
 	virtual bool setCell(int worldX, int worldY, int prm1, int prm2, int prm3, int prm4) override;
 	virtual bool clearCell(int worldX, int worldY) override;

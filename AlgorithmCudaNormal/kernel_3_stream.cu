@@ -35,11 +35,12 @@ __forceinline__ __device__ void updateCell(int* matDst, int* matSrc, int globalI
 }
 
 /*
-when block size is (32,32), calculation block is (30,30)
-the 1st block calculates (1,1) - (30,30)  (using matrix[(0,0) - (31,31)])
-the 2nd block calculates (31,1) - (60,30) (using matrix[(30,0) - (61,0)])
+* when block size is (32,32), calculation block is (30,30)
+* the 1st block calculates (1,1) - (30,30)  (using matrix[(0,0) - (31,31)])
+* the 2nd block calculates (31,1) - (60,30) (using matrix[(30,0) - (61,0)])
+* Note: matrix memory size is (1 + width + 1, 1 + height + 1) (the real matrix is [(1,1) - (memWidth - 2, memHeight - 2)]
 */
-__global__ void loop_3_stream(int* matDst, int *matSrc, int width, int height, int devMatWidth, int devMatHeight, int offsetY)
+__global__ void loop_3_stream(int* matDst, int *matSrc, int width, int height, int memWidth, int memHeight, int offsetY)
 {
 	__shared__ int tile[BLOCK_SIZE_H][BLOCK_SIZE_W];
 	/* this is position on memory */
@@ -49,104 +50,102 @@ __global__ void loop_3_stream(int* matDst, int *matSrc, int width, int height, i
 	int localX = threadIdx.x;
 	int localY = threadIdx.y;
 
-	if (globalX >= devMatWidth || globalY >= devMatHeight) return;
+	if (globalX >= memWidth || globalY >= memHeight) return;
 
-	/* copy data from global memory to shared memory */
-	int thisCell = tile[localY][localX] = matSrc[devMatWidth * globalY + globalX];
+	/* copy data from global memory to shared memory [(0,0) - (31,31)] */
+	int thisCell = tile[localY][localX] = matSrc[memWidth * globalY + globalX];
 	__syncthreads();
 
-	if (globalX >= devMatWidth - 1 || globalY >= devMatHeight - 1 || localX == 0 || localX == blockDim.x - 1 || localY == 0 || localY == blockDim.y - 1) return;
+	if (globalX >= memWidth - 1 || globalY >= memHeight - 1 || localX == 0 || localX == blockDim.x - 1 || localY == 0 || localY == blockDim.y - 1) return;
+	/* calculate if [(1,1) - (30,30)] */
 
 	int cnt;
 	cnt = (tile[localY - 1][localX - 1] != 0) + (tile[localY - 1][localX - 0] != 0) + (tile[localY - 1][localX + 1] != 0)
 		+ (tile[localY - 0][localX - 1] != 0) + (thisCell != 0) + (tile[localY - 0][localX + 1] != 0)
 		+ (tile[localY + 1][localX - 1] != 0) + (tile[localY + 1][localX - 0] != 0) + (tile[localY + 1][localX + 1] != 0);
 
-	updateCell(matDst, matSrc, devMatWidth * globalY + globalX, cnt);
+	updateCell(matDst, matSrc, memWidth * globalY + globalX, cnt);
 }
 
-__global__ void loop_3_stream_makeAliasRow(int *mat, int width, int height, int devMatWidth, int devMatHeight)
+__global__ void loop_3_stream_makeAliasRow(int *mat, int width, int height, int memWidth, int memHeight)
 {
 	int *p = mat;
 	int devMatX = blockIdx.x * blockDim.x + threadIdx.x + 1;
-	p[0 + devMatX] = p[devMatWidth * (devMatHeight - 2) + devMatX];
-	p[devMatWidth * (devMatHeight - 1) + devMatX] = p[devMatWidth * 1 + devMatX];
+	p[0 + devMatX] = p[memWidth * (memHeight - 2) + devMatX];
+	p[memWidth * (memHeight - 1) + devMatX] = p[memWidth * 1 + devMatX];
 	
 	if (devMatX == 1) {
-		p[devMatWidth * 0 + 0] = p[devMatWidth * (devMatHeight - 2) + devMatWidth - 2];
-		p[devMatWidth * 0 + devMatWidth - 1] = p[devMatWidth * (devMatHeight - 2) + 1];
-		p[devMatWidth * (devMatHeight - 1) + 0] = p[devMatWidth * (1) + devMatWidth - 2];
-		p[devMatWidth * (devMatHeight - 1) + devMatWidth - 1] = p[devMatWidth * (1) + 1];
+		p[memWidth * 0 + 0] = p[memWidth * (memHeight - 2) + memWidth - 2];
+		p[memWidth * 0 + memWidth - 1] = p[memWidth * (memHeight - 2) + 1];
+		p[memWidth * (memHeight - 1) + 0] = p[memWidth * (1) + memWidth - 2];
+		p[memWidth * (memHeight - 1) + memWidth - 1] = p[memWidth * (1) + 1];
 	}
 }
 
-__global__ void loop_3_stream_makeAliasCol(int *mat, int width, int height, int devMatWidth, int devMatHeight)
+__global__ void loop_3_stream_makeAliasCol(int *mat, int width, int height, int memWidth, int memHeight)
 {
 	int *p = mat;
 	int devMatY = blockIdx.x * blockDim.x + threadIdx.x + 1;
 
-	p[devMatWidth * devMatY + 0] = p[devMatWidth * devMatY + devMatWidth - 2];
-	p[devMatWidth * devMatY + devMatWidth - 1] = p[devMatWidth * devMatY + 1];
+	p[memWidth * devMatY + 0] = p[memWidth * devMatY + memWidth - 2];
+	p[memWidth * devMatY + memWidth - 1] = p[memWidth * devMatY + 1];
 	
 }
 
+/* The algorithm using alias area on 4 corners and edges so that main logic doen't need to consider border
+ *  with shared memory
+ *  with stream
+ *  do not copy matSrc from host to device all the time 
+ *  Note: matrix memory size is (1 + width + 1, 1 + height + 1) (the real matrix is [(1,1) - (memWidth - 2, memHeight - 2)]
+*/
 void process_3_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 {
-	int devMatWidth = width + 2 * MEMORY_MARGIN;
-	int devMatHeight = height + 2 * MEMORY_MARGIN;
-	int blocksizeW = BLOCK_SIZE_W;
-	int blocksizeH = BLOCK_SIZE_H;
+	int memWidth = width + 2 * MEMORY_MARGIN;
+	int memHeight = height + 2 * MEMORY_MARGIN;
+	int heightStream = ceil((double)memHeight / NUM_STREAM);
 
 	/* block size setting for main logic
-	* do copy per 32(BLOCK_SIZE)
-	* do calculation per 30(BLOCK_SIZE-2)
+	 * do copy per 32(BLOCK_SIZE)
+	 * do calculation per 30(BLOCK_SIZE-2)
+	 * the number of block is ceil(width / 30)
 	*/
-	dim3 block(blocksizeW, blocksizeH, 1);
-	dim3 grid((int)ceil(width / (double)(blocksizeW - 2 * MEMORY_MARGIN)), (int)ceil(height / (double)(blocksizeH - 2 * MEMORY_MARGIN) / NUM_STREAM), 1);
+	dim3 block(BLOCK_SIZE_W, BLOCK_SIZE_H, 1);
+	dim3 grid((int)ceil(width / (double)(BLOCK_SIZE_W - 2 * MEMORY_MARGIN)), (int)ceil(height / (double)(BLOCK_SIZE_H - 2 * MEMORY_MARGIN) / NUM_STREAM), 1);
 
-	/* block size settings for alias copy kernel */
-	dim3 blockH(blocksizeH);
-	dim3 gridH(height / blocksizeH);
-	dim3 blockW(blocksizeW);
-	dim3 gridW(width / blocksizeW);
-
-	if (param->isFirstOperation) {
-		/* create alias area in CPU */
+	if (param->isMatrixUpdated) {
+		/* create alias area in host memory (copy from host to device is done by stream later) */
 		int *p = param->hostMatSrc;
-		memcpy(p, p + (devMatHeight - 2) * devMatWidth, devMatWidth * sizeof(int));
-		memcpy(p + (devMatHeight - 1) * devMatWidth, p + (1) * devMatWidth, devMatWidth * sizeof(int));
-		for (int y = 1; y < devMatHeight - 1; y++) {
-			p[devMatWidth * y + 0] = p[devMatWidth * y + devMatWidth - 2];
-			p[devMatWidth * y + devMatWidth - 1] = p[devMatWidth * y + 1];
+		memcpy(p, p + (memHeight - 2) * memWidth, memWidth * sizeof(int));
+		memcpy(p + (memHeight - 1) * memWidth, p + (1) * memWidth, memWidth * sizeof(int));
+		for (int y = 1; y < memHeight - 1; y++) {
+			p[memWidth * y + 0] = p[memWidth * y + memWidth - 2];
+			p[memWidth * y + memWidth - 1] = p[memWidth * y + 1];
 		}
-		p[devMatWidth * 0 + 0] = p[devMatWidth * (devMatHeight - 2) + devMatWidth - 2];
-		p[devMatWidth * 0 + devMatWidth - 1] = p[devMatWidth * (devMatHeight - 2) + 1];
-		p[devMatWidth * (devMatHeight - 1) + 0] = p[devMatWidth * (1) + devMatWidth - 2];
-		p[devMatWidth * (devMatHeight - 1) + devMatWidth - 1] = p[devMatWidth * (1) + 1];
-	} else {
-		/* create alias area in device memory */
-		dim3 blockW(blocksizeW);
-		dim3 gridW(width / blocksizeW);
-		dim3 blockH(blocksizeH);
-		dim3 gridH(height / blocksizeH);
-		loop_3_stream_makeAliasRow <<<gridW, blockW >>> (param->devMatSrc, width, height, devMatWidth, devMatHeight);
-		loop_3_stream_makeAliasCol << <gridH, blockH >> > (param->devMatSrc, width, height, devMatWidth, devMatHeight);
-		CHECK(cudaDeviceSynchronize());
-	}
+		p[memWidth * 0 + 0] = p[memWidth * (memHeight - 2) + memWidth - 2];
+		p[memWidth * 0 + memWidth - 1] = p[memWidth * (memHeight - 2) + 1];
+		p[memWidth * (memHeight - 1) + 0] = p[memWidth * (1) + memWidth - 2];
+		p[memWidth * (memHeight - 1) + memWidth - 1] = p[memWidth * (1) + 1];
 
-	/* copy border line data at first */
-	int heightStream = ceil((double)devMatHeight / NUM_STREAM);
-	if (param->isFirstOperation) {
+		/* copy border line data at first to simplyfy logic of each stream (no need to consider border line) */
 		for (int i = 0; i < NUM_STREAM; i++) {
-			int offsetFirstLine = (i * heightStream) * devMatWidth;
-			CHECK(cudaMemcpy(param->devMatSrc + offsetFirstLine, param->hostMatSrc + offsetFirstLine, devMatWidth * sizeof(int), cudaMemcpyHostToDevice));
-			int offsetLastLine = ((i + 1) * heightStream - 1) * devMatWidth;
-			if (offsetLastLine < (devMatHeight - 1) * devMatWidth) {
-				CHECK(cudaMemcpy(param->devMatSrc + offsetLastLine, param->hostMatSrc + offsetLastLine, devMatWidth * sizeof(int), cudaMemcpyHostToDevice));
+			int offsetFirstLine = (i * heightStream) * memWidth;
+			CHECK(cudaMemcpy(param->devMatSrc + offsetFirstLine, param->hostMatSrc + offsetFirstLine, memWidth * sizeof(int), cudaMemcpyHostToDevice));
+			int offsetLastLine = ((i + 1) * heightStream - 1) * memWidth;
+			if (offsetLastLine < (memHeight - 1) * memWidth) {
+				CHECK(cudaMemcpy(param->devMatSrc + offsetLastLine, param->hostMatSrc + offsetLastLine, memWidth * sizeof(int), cudaMemcpyHostToDevice));
 			} else {
-				CHECK(cudaMemcpy(param->devMatSrc + (devMatHeight - 1) * devMatWidth, param->hostMatSrc + (devMatHeight - 1) * devMatWidth, devMatWidth * sizeof(int), cudaMemcpyHostToDevice));
+				CHECK(cudaMemcpy(param->devMatSrc + (memHeight - 1) * memWidth, param->hostMatSrc + (memHeight - 1) * memWidth, memWidth * sizeof(int), cudaMemcpyHostToDevice));
 			}
 		}
+	} else {
+		/* create alias area in device memory */
+		dim3 blockW(BLOCK_SIZE_W);
+		dim3 gridW(width / BLOCK_SIZE_W);
+		dim3 blockH(BLOCK_SIZE_H);
+		dim3 gridH(height / BLOCK_SIZE_H);
+		loop_3_stream_makeAliasRow <<<gridW, blockW >>> (param->devMatSrc, width, height, memWidth, memHeight);
+		loop_3_stream_makeAliasCol << <gridH, blockH >> > (param->devMatSrc, width, height, memWidth, memHeight);
+		CHECK(cudaDeviceSynchronize());
 	}
 
 	/* create stream(copy(h2d), kernel, copy(d2h)) */
@@ -154,12 +153,12 @@ void process_3_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 		cudaStream_t* pStream = (cudaStream_t*)(param->pStream[i]);
 		int offsetY = i * heightStream;
 		int copyLine = heightStream;
-		if (offsetY + heightStream > devMatHeight) copyLine = devMatHeight - offsetY;
-		if (param->isFirstOperation) {
-			CHECK(cudaMemcpyAsync(param->devMatSrc + offsetY * devMatWidth, param->hostMatSrc + offsetY * devMatWidth, devMatWidth * copyLine * sizeof(int), cudaMemcpyHostToDevice, *pStream));
+		if (offsetY + heightStream > memHeight) copyLine = memHeight - offsetY;
+		if (param->isMatrixUpdated) {
+			CHECK(cudaMemcpyAsync(param->devMatSrc + offsetY * memWidth, param->hostMatSrc + offsetY * memWidth, memWidth * copyLine * sizeof(int), cudaMemcpyHostToDevice, *pStream));
 		}
-		loop_3_stream << < grid, block, 0, *pStream >> > (param->devMatDst, param->devMatSrc, width, height, devMatWidth, devMatHeight, offsetY);
-		CHECK(cudaMemcpyAsync(param->hostMatDst + offsetY * devMatWidth, param->devMatDst + offsetY * devMatWidth, devMatWidth * copyLine * sizeof(int), cudaMemcpyDeviceToHost, *pStream));
+		loop_3_stream << < grid, block, 0, *pStream >> > (param->devMatDst, param->devMatSrc, width, height, memWidth, memHeight, offsetY);
+		CHECK(cudaMemcpyAsync(param->hostMatDst + offsetY * memWidth, param->devMatDst + offsetY * memWidth, memWidth * copyLine * sizeof(int), cudaMemcpyDeviceToHost, *pStream));
 	}
 
 	for (int i = 0; i < NUM_STREAM; i++) {
@@ -168,7 +167,55 @@ void process_3_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 	}
 
 	swapMat(param);
-	param->isFirstOperation = 0;
+	param->isMatrixUpdated = 0;
+
+	// hostMatSrc is ready to be displayed
+}
+
+/* The algorithm using alias area on 4 corners and edges so that main logic doen't need to consider border
+*  with shared memory
+*  1. copy from host to device
+*  2. repeat main logic several times
+*  3. copy from device to host
+*  Note: matrix memory size is (1 + width + 1, 1 + height + 1) (the real matrix is [(1,1) - (memWidth - 2, memHeight - 2)]
+*/
+void process_3_repeat(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height, int repeatNum)
+{
+	int memWidth = width + 2 * MEMORY_MARGIN;
+	int memHeight = height + 2 * MEMORY_MARGIN;
+
+	/* block size setting for main logic
+	* do copy per 32(BLOCK_SIZE)
+	* do calculation per 30(BLOCK_SIZE-2)
+	* the number of block is ceil(width / 30)
+	*/
+	dim3 block(BLOCK_SIZE_W, BLOCK_SIZE_H, 1);
+	dim3 grid((int)ceil(width / (double)(BLOCK_SIZE_W - 2 * MEMORY_MARGIN)), (int)ceil(height / (double)(BLOCK_SIZE_H - 2 * MEMORY_MARGIN)), 1);
+
+
+	/* Copy matrix data from host to device */
+	CHECK(cudaMemcpy(param->devMatSrc, param->hostMatSrc, memWidth * memHeight * sizeof(int), cudaMemcpyHostToDevice));
+
+	for (int i = 0; i < repeatNum; i++) {
+		/* create alias area in device memory */
+		dim3 blockW(BLOCK_SIZE_W);
+		dim3 gridW(width / BLOCK_SIZE_W);
+		dim3 blockH(BLOCK_SIZE_H);
+		dim3 gridH(height / BLOCK_SIZE_H);
+		loop_3_stream_makeAliasRow << <gridW, blockW >> > (param->devMatSrc, width, height, memWidth, memHeight);
+		loop_3_stream_makeAliasCol << <gridH, blockH >> > (param->devMatSrc, width, height, memWidth, memHeight);
+		CHECK(cudaDeviceSynchronize());
+
+		/*** operate logic without border check ***/
+		loop_3_stream << < grid, block >> > (param->devMatDst, param->devMatSrc, width, height, memWidth, memHeight, 0);
+		CHECK(cudaDeviceSynchronize());
+		swapMat(param);
+	}
+	swapMat(param);
+	CHECK(cudaMemcpy(param->hostMatDst + (memWidth * 1) + MEMORY_MARGIN, param->devMatDst + (memWidth * 1) + MEMORY_MARGIN, memWidth * height * sizeof(int), cudaMemcpyDeviceToHost));
+	swapMat(param);
+
+	// hostMatSrc is ready to be displayed
 }
 
 

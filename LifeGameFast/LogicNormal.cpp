@@ -22,6 +22,17 @@ LogicNormal::~LogicNormal()
 	}
 }
 
+int* LogicNormal::getDisplayMat() {
+	if (m_lastRetrievedGenration != m_info.generation) {
+		/* update display matrix if generation proceeded */
+		//m_mutexMatDisplay.lock();	// wait if thread is copying matrix data 
+		memcpy(m_matDisplay, m_mat[m_matIdOld], sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
+		//m_mutexMatDisplay.unlock();
+		m_lastRetrievedGenration = m_info.generation;
+	}
+	return m_matDisplay;
+}
+
 bool LogicNormal::toggleCell(int worldX, int worldY, int prm1, int prm2, int prm3, int prm4)
 {
 	if(LogicBase::toggleCell(worldX, worldY, prm1, prm2, prm3, prm4)) {
@@ -55,12 +66,13 @@ bool LogicNormal::clearCell(int worldX, int worldY)
 
 void LogicNormal::gameLogic() 
 {
-	m_info.generation++;
-
 	if (m_isMatrixUpdated) {
 		memcpy(m_mat[m_matIdOld], m_matDisplay, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
+		m_isMatrixUpdated = 0;
 	}
 
+	//m_mutexMatDisplay.lock();	// wait if thread is copying matrix data 
+	
 	/* four edges */
 	processWithBorderCheck(0, WORLD_WIDTH, 0, 1);
 	processWithBorderCheck(0, WORLD_WIDTH, WORLD_HEIGHT-1, WORLD_HEIGHT);
@@ -69,15 +81,13 @@ void LogicNormal::gameLogic()
 
 	/* for most area */
 	processWithoutBorderCheck(1, WORLD_WIDTH-1, 1, WORLD_HEIGHT-1);
-
-	/* in this algorithm, it just show the same value as each cell */
-	m_mutexMatDisplay.lock();	// wait if thread is copying matrix data 
-	memcpy(m_matDisplay, m_mat[m_matIdNew], sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
-	m_mutexMatDisplay.unlock();
-
+	
 	int tempId = m_matIdOld;
 	m_matIdOld = m_matIdNew;
 	m_matIdNew = tempId;
+	m_info.generation++;
+	//m_mutexMatDisplay.unlock();
+	
 }
 
 void LogicNormal::processWithBorderCheck(int x0, int x1, int y0, int y1)
