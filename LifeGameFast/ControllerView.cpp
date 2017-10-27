@@ -2,6 +2,7 @@
 #include "ControllerView.h"
 #include "Values.h"
 
+
 ControllerView::ControllerView()
 {
 	m_pCurrentWorldContext = NULL;
@@ -45,7 +46,9 @@ void ControllerView::onUpdate(void)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	TwDraw();
+	glFlush();
 	glutPostRedisplay();
+	std::this_thread::sleep_for(std::chrono::milliseconds(1));
 }
 
 void ControllerView::onResize(int w, int h)
@@ -93,7 +96,7 @@ int ControllerView::SpecialKeyCB(int glutKey, int mouseX, int mouseY)
 void ControllerView::initLibrary()
 {
 	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-	glutInitDisplayMode(GLUT_RGBA);
+	glutInitDisplayMode(GLUT_RGB);
 	glClearColor(0, 0, 0, 1);
 	m_windowId = glutCreateWindow("Controller");
 	glutCreateMenu(NULL);
