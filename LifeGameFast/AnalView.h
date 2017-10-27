@@ -5,7 +5,7 @@ class AnalView : public IView
 {
 private:
 	static const int MARGIN = 10;
-	static const int WINDOW_HEIGHT = 200;
+	static const int WINDOW_HEIGHT = 240;
 	static const int TEXT_AREA_WIDTH = 200;
 
 	typedef struct {
@@ -39,7 +39,7 @@ private:
 
 	int m_NumHistory;
 	std::deque<ANAL_INFORMATION> analInfoHistory;
-	int m_maxGraphY;
+	unsigned int m_maxGraphY;
 
 private:
 	void initView();

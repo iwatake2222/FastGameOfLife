@@ -21,7 +21,8 @@ public:
 	int m_prm3;
 	int m_prm4;
 
-	int m_viewInterval;
+	int m_drawInterval;
+	int m_skipNum;
 
 
 private:

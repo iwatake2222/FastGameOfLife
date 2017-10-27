@@ -25,7 +25,7 @@ void LogicNormalNonTorus::processWithBorderCheck(int x0, int x1, int y0, int y1)
 					int roundX = xx;
 					if (roundX >= WORLD_WIDTH) continue;
 					if (roundX < 0) continue;
-					if (m_mat[m_matIdOld][WORLD_WIDTH * roundY + roundX] != 0) {
+					if (m_matSrc[WORLD_WIDTH * roundY + roundX] != 0) {
 						cnt++;
 					}
 				}

@@ -8,7 +8,7 @@ private:
 	AlgorithmCudaNormal::ALGORITHM_CUDA_NORMAL_PARAM m_cudaParam;
 
 private:
-	virtual void gameLogic() override;
+	virtual void gameLogic(int repeatNum) override;
 
 public:
 	LogicNormalCuda(int worldWidth, int worldHeight);

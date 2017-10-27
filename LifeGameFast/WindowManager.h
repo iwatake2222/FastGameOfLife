@@ -7,6 +7,7 @@ class WindowManager
 {
 private:
 	std::map<int, IView *> m_viewMap;
+	static int m_drawIntervalMS;
 
 private:
 	WindowManager();
@@ -26,6 +27,7 @@ public:
 	void startLoop();
 	void registerWindow(int windowId, IView* pWorldView);
 	void unregisterWindow(int windowId);
+	int getDrawIntervalMS();
 
 };
 

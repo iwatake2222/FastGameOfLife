@@ -19,9 +19,9 @@ WorldContext::WorldContext()
 	WORLD_WIDTH = ControllerView::getInstance()->m_worldWidth;
 	WORLD_HEIGHT = ControllerView::getInstance()->m_worldHeight;
 
-	/* 16 align */
-	WORLD_WIDTH = (WORLD_WIDTH / 16) * 16;
-	WORLD_HEIGHT = (WORLD_HEIGHT / 16) * 16;
+	/* 32 align */
+	WORLD_WIDTH = (WORLD_WIDTH / 32) * 32;
+	WORLD_HEIGHT = (WORLD_HEIGHT / 32) * 32;
 
 	m_pLogic = LogicBase::generateLogic(ControllerView::getInstance()->m_worldAlgorithm, WORLD_WIDTH, WORLD_HEIGHT);
 	m_pLogic->initialize();
@@ -115,12 +115,11 @@ void WorldContext::saveToFile(WorldContext* context)
 		
 		fwprintf_s(fp, L"%d,%d\n", context->WORLD_WIDTH, context->WORLD_HEIGHT);
 
-		int x, y, prm;
 		int *mat = context->m_pLogic->getDisplayMat();
 		for (int y = 0; y < context->WORLD_HEIGHT; y++) {
 			int yIndex = context->WORLD_WIDTH * y;
 			for (int x = 0; x < context->WORLD_WIDTH; x++) {
-				prm = mat[yIndex + x];
+				int prm = mat[yIndex + x];
 				if (prm != 0) {
 					fwprintf_s(fp, L"%d,%d,%d\n", x, y, prm);
 				}

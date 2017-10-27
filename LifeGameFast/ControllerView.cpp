@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ControllerView.h"
 #include "Values.h"
+
 ControllerView::ControllerView()
 {
 	m_pCurrentWorldContext = NULL;
@@ -14,7 +15,8 @@ ControllerView::ControllerView()
 	m_prm3 = 0;
 	m_prm4 = 0;
 
-	m_viewInterval = DEFAULT_VIEW_INTERVAL;
+	m_drawInterval = DEFAULT_DRAW_INTERVAL;
+	m_skipNum = DEFAULT_SKIP_NUM;
 
 	initLibrary();
 	initUI();
@@ -209,8 +211,8 @@ void ControllerView::initUI()
 	TwSetParam(m_pBar, NULL, "size", TW_PARAM_CSTRING, 1, str);
 	TwDefine(" GLOBAL fontsize=3 fontstyle=fixed ");
 
-	TwAddVarRW(m_pBar, "width", TW_TYPE_INT32, &m_worldWidth, " min=16 max=4096 step=16 label='Width' group='World Parameters' ");
-	TwAddVarRW(m_pBar, "height", TW_TYPE_INT32, &m_worldHeight, " min=16 max=4096 step=16 label='Height' group='World Parameters' ");
+	TwAddVarRW(m_pBar, "width", TW_TYPE_INT32, &m_worldWidth, " min=16 max=4096 step=32 label='Width' group='World Parameters' ");
+	TwAddVarRW(m_pBar, "height", TW_TYPE_INT32, &m_worldHeight, " min=16 max=4096 step=32 label='Height' group='World Parameters' ");
 	TwEnumVal algorithmEV[] = { 
 		{ ALGORITHM_NORMAL, "Normal" },
 		{ ALGORITHM_NORMAL_MP, "Normal Open MP" },
@@ -229,7 +231,8 @@ void ControllerView::initUI()
 	
 	TwAddSeparator(m_pBar, NULL, NULL);
 	TwAddButton(m_pBar, "btnInformation", ControllerView::onClickBtnInformation, this, " label='show Information [i]' group='View' ");
-	TwAddVarRW(m_pBar, "viewInterval", TW_TYPE_INT32, &m_viewInterval, "min=1 max=10 step=1 label='Draw interval' group='View' ");
+	TwAddVarRW(m_pBar, "drawInterval", TW_TYPE_INT32, &m_drawInterval, "min=1 max=10 step=1 label='Draw interval' group='View' ");
+	TwAddVarRW(m_pBar, "skipNum", TW_TYPE_INT32, &m_skipNum, "min=1 max=100 step=1 label='Skip' group='View' ");
 
 	TwAddSeparator(m_pBar, NULL, NULL);
 	TwAddButton(m_pBar, "textLClick", NULL, this, " label='Left click/drag to put/clear cells' group='Operations' ");

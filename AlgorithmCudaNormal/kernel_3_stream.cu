@@ -194,7 +194,9 @@ void process_3_repeat(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height,
 
 
 	/* Copy matrix data from host to device */
-	CHECK(cudaMemcpy(param->devMatSrc, param->hostMatSrc, memWidth * memHeight * sizeof(int), cudaMemcpyHostToDevice));
+	if (param->isMatrixUpdated) {
+		CHECK(cudaMemcpy(param->devMatSrc, param->hostMatSrc, memWidth * memHeight * sizeof(int), cudaMemcpyHostToDevice));
+	}
 
 	for (int i = 0; i < repeatNum; i++) {
 		/* create alias area in device memory */
@@ -214,6 +216,7 @@ void process_3_repeat(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height,
 	swapMat(param);
 	CHECK(cudaMemcpy(param->hostMatDst + (memWidth * 1) + MEMORY_MARGIN, param->devMatDst + (memWidth * 1) + MEMORY_MARGIN, memWidth * height * sizeof(int), cudaMemcpyDeviceToHost));
 	swapMat(param);
+	param->isMatrixUpdated = 0;
 
 	// hostMatSrc is ready to be displayed
 }

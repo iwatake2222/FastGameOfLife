@@ -12,7 +12,8 @@ namespace AlgorithmCudaNormal
 //#define ALGORITHM_2
 //#define ALGORITHM_2_STREAM
 //#define ALGORITHM_3_STREAM
-#define ALGORITHM_3_REPEAT
+//#define ALGORITHM_3_REPEAT
+#define ALGORITHM_3_AUTO
 
 const static int BLOCK_SIZE_W = 32;
 const static int BLOCK_SIZE_H = 32;

@@ -127,8 +127,8 @@ void WorldView::drawCells()
 	int intervalY = (m_worldVisibleY1 - m_worldVisibleY0) / m_windowHeight;
 	if (intervalX < 1)intervalX = 1;
 	if (intervalY < 1)intervalY = 1;
-	intervalX *= ControllerView::getInstance()->m_viewInterval;
-	intervalY *= ControllerView::getInstance()->m_viewInterval;
+	intervalX *= ControllerView::getInstance()->m_drawInterval;
+	intervalY *= ControllerView::getInstance()->m_drawInterval;
 
 	int *mat = m_pContext->m_pLogic->getDisplayMat();
 
@@ -181,7 +181,7 @@ void WorldView::onUpdate(void)
 	glFlush();
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(1));
-#if 1
+#if 0
 	static std::chrono::system_clock::time_point  timePrevious;
 	std::chrono::system_clock::time_point  timeNow;;
 	timeNow = std::chrono::system_clock::now();

@@ -4,31 +4,34 @@
 LogicNormal::LogicNormal(int worldWidth, int worldHeight)  
 	: LogicBase(worldWidth, worldHeight)
 {
-	m_matIdOld = 0;
-	m_matIdNew = 1;
-
-	for (int i = 0; i < 2; i++) {
-		m_mat[i] = new int[WORLD_WIDTH * WORLD_HEIGHT];
-		memset(m_mat[i], 0x00, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
-		memset(m_matDisplay, 0x00, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
-	}
+	m_matSrc = new int[WORLD_WIDTH * WORLD_HEIGHT];
+	m_matDst = new int[WORLD_WIDTH * WORLD_HEIGHT];
+	memset(m_matSrc, 0x00, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
+	memset(m_matDst, 0x00, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
+	
 }
 
 LogicNormal::~LogicNormal()
 {
-	for (int i = 0; i < 2; i++) {
-		delete m_mat[i];
-		m_mat[i] = 0;
-	}
+	delete m_matSrc;
+	delete m_matDst;
+	m_matSrc = 0;
+	m_matDst = 0;
 }
 
 int* LogicNormal::getDisplayMat() {
-	if (m_lastRetrievedGenration != m_info.generation) {
-		/* update display matrix if generation proceeded */
-		//m_mutexMatDisplay.lock();	// wait if thread is copying matrix data 
-		memcpy(m_matDisplay, m_mat[m_matIdOld], sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
-		//m_mutexMatDisplay.unlock();
+	if (m_lastRetrievedGenration != m_info.generation && !m_isMatrixUpdated) {
+		/* copy pixel data from m_matSrc -> m_matDisplay when updated (when generation proceeded) */
+		/* if user updated m_matDisplay(m_isMatrixUpdated is true), use m_matDisplay directly */
+		int tryCnt = 0;
+		while (!m_mutexMatDisplay.try_lock()) {
+			// wait if thread is copying matrix data. give up after several tries not to decrease draw performance
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			if (tryCnt++ > 10) return m_matDisplay;
+		}
+		memcpy(m_matDisplay, m_matSrc, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
 		m_lastRetrievedGenration = m_info.generation;
+		m_mutexMatDisplay.unlock();
 	}
 	return m_matDisplay;
 }
@@ -64,29 +67,33 @@ bool LogicNormal::clearCell(int worldX, int worldY)
 	return false;
 }
 
-void LogicNormal::gameLogic() 
+void LogicNormal::gameLogic(int repeatNum)
 {
 	if (m_isMatrixUpdated) {
-		memcpy(m_mat[m_matIdOld], m_matDisplay, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
+		/* copy pixel data from m_matDisplay -> m_matSrc when updated (when the first time, or when user put/clear cells) */
+		memcpy(m_matSrc, m_matDisplay, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
 		m_isMatrixUpdated = 0;
 	}
 
-	//m_mutexMatDisplay.lock();	// wait if thread is copying matrix data 
-	
-	/* four edges */
-	processWithBorderCheck(0, WORLD_WIDTH, 0, 1);
-	processWithBorderCheck(0, WORLD_WIDTH, WORLD_HEIGHT-1, WORLD_HEIGHT);
-	processWithBorderCheck(0, 1, 0, WORLD_HEIGHT);
-	processWithBorderCheck(WORLD_WIDTH-1, WORLD_WIDTH, 0, WORLD_HEIGHT);
+	m_mutexMatDisplay.lock();	// wait if view is copying matrix data 
+	for (int i = 0; i < repeatNum; i++) {
+		/* four edges */
+		processWithBorderCheck(0, WORLD_WIDTH, 0, 1);
+		processWithBorderCheck(0, WORLD_WIDTH, WORLD_HEIGHT - 1, WORLD_HEIGHT);
+		processWithBorderCheck(0, 1, 0, WORLD_HEIGHT);
+		processWithBorderCheck(WORLD_WIDTH - 1, WORLD_WIDTH, 0, WORLD_HEIGHT);
 
-	/* for most area */
-	processWithoutBorderCheck(1, WORLD_WIDTH-1, 1, WORLD_HEIGHT-1);
-	
-	int tempId = m_matIdOld;
-	m_matIdOld = m_matIdNew;
-	m_matIdNew = tempId;
-	m_info.generation++;
-	//m_mutexMatDisplay.unlock();
+		/* for most area */
+		processWithoutBorderCheck(1, WORLD_WIDTH - 1, 1, WORLD_HEIGHT - 1);
+
+		int *temp = m_matSrc;
+		m_matSrc = m_matDst;
+		m_matDst = temp;
+	}
+	m_info.generation += repeatNum;
+	m_mutexMatDisplay.unlock();
+
+	// m_matSrc is ready to display
 	
 }
 
@@ -104,7 +111,7 @@ void LogicNormal::processWithBorderCheck(int x0, int x1, int y0, int y1)
 					int roundX = xx;
 					if (roundX >= WORLD_WIDTH) roundX = 0;
 					if (roundX < 0) roundX = WORLD_WIDTH - 1;
-					if (m_mat[m_matIdOld][WORLD_WIDTH * roundY + roundX] != 0) {
+					if (m_matSrc[WORLD_WIDTH * roundY + roundX] != 0) {
 						cnt++;
 					}
 				}
@@ -123,7 +130,7 @@ void LogicNormal::processWithoutBorderCheck(int x0, int x1, int y0, int y1)
 			int cnt = 0;
 			for (int yy = y - 1; yy <= y + 1; yy++) {
 				for (int xx = x - 1; xx <= x + 1; xx++) {
-					if (m_mat[m_matIdOld][WORLD_WIDTH * yy + xx] != 0) {
+					if (m_matSrc[WORLD_WIDTH * yy + xx] != 0) {
 						cnt++;
 					}
 				}
@@ -136,21 +143,21 @@ void LogicNormal::processWithoutBorderCheck(int x0, int x1, int y0, int y1)
 inline void LogicNormal::updateCell(int x, int yLine, int cnt)
 {
 	/* Note: yLine is index of array (yLine = y*width) */
-	if (m_mat[m_matIdOld][yLine + x] == 0) {
+	if (m_matSrc[yLine + x] == 0) {
 		if (cnt == 3) {
 			// birth
-			m_mat[m_matIdNew][yLine + x] = 1;
+			m_matDst[yLine + x] = 1;
 		} else {
 			// keep dead
-			m_mat[m_matIdNew][yLine + x] = 0;
+			m_matDst[yLine + x] = 0;
 		}
 	} else {
 		if (cnt <= 2 || cnt >= 5) {
 			// die
-			m_mat[m_matIdNew][yLine + x] = 0;
+			m_matDst[yLine + x] = 0;
 		} else {
 			// keep alive (age++)
-			m_mat[m_matIdNew][yLine + x] = m_mat[m_matIdOld][yLine + x] + 1;
+			m_matDst[yLine + x] = m_matSrc[yLine + x] + 1;
 		}
 	}
 }

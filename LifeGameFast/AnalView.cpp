@@ -215,13 +215,17 @@ void AnalView::displayInformationText(ANAL_INFORMATION* info)
 	writeTextArea(8, str);
 
 	glColor3dv(COLOR_3D_NORMAL);
-	sprintf_s(str, "FPS = %3.2lf (%d [msec]", 1000.0 / worldInfo.calcTime, worldInfo.calcTime);
+	sprintf_s(str, "GPS = %3.2lf (%d [msec]", 1000.0 / worldInfo.calcTime, worldInfo.calcTime);
 	writeTextArea(9, str);
+
+	glColor3dv(COLOR_3D_NORMAL);
+	sprintf_s(str, "FPS = %3.2lf (%d [msec]", 1000.0 / WindowManager::getInstance()->getDrawIntervalMS(), WindowManager::getInstance()->getDrawIntervalMS());
+	writeTextArea(10, str);
 }
 
 void AnalView::onUpdate(void)
 {
-	if (m_intervalCnt++ % ControllerView::getInstance()->m_viewInterval != 0) return;
+	if (m_intervalCnt++ % ControllerView::getInstance()->m_drawInterval != 0) return;
 
 	glClearColor(0.1f, 0.0f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);

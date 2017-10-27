@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include "WindowManager.h"
 
+int WindowManager::m_drawIntervalMS;
 
 WindowManager::WindowManager()
 {
+	WindowManager::m_drawIntervalMS = 0;
 }
 
 WindowManager::~WindowManager()
@@ -52,6 +54,11 @@ void WindowManager::unregisterWindow(int windowId)
 	m_viewMap.erase(windowId);
 }
 
+int WindowManager::getDrawIntervalMS()
+{
+	return WindowManager::m_drawIntervalMS;
+}
+
 void WindowManager::idle(void)
 {
 	for (std::map<int, IView *>::iterator it = getInstance()->m_viewMap.begin(); it != getInstance()->m_viewMap.end(); ++it) {
@@ -64,6 +71,13 @@ void WindowManager::onUpdateWrapper()
 {
 	int windowId = glutGetWindow();
 	getInstance()->m_viewMap[windowId]->onUpdate();
+
+	static std::chrono::system_clock::time_point  timePrevious;
+	std::chrono::system_clock::time_point  timeNow;;
+	timeNow = std::chrono::system_clock::now();
+	WindowManager::m_drawIntervalMS = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - timePrevious).count();
+	//printf("fpsDraw = %lf\n", 1000.0 / m_drawIntervalMS);
+	timePrevious = timeNow;
 }
 void WindowManager::onResizeWrapper(int w, int h)
 {

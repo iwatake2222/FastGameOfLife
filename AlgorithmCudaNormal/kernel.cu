@@ -84,9 +84,17 @@ void cudaProcess(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height, int 
 		extern void process_3_repeat(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height, int repeatNum);
 		process_3_repeat(param, width, height, repeatNum);
 		break;
+#elif defined(ALGORITHM_3_AUTO)
+		extern void process_3_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height);
+		extern void process_3_repeat(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height, int repeatNum);
+		if (repeatNum == 1) {
+			process_3_stream(param, width, height);
+		} else {
+			process_3_repeat(param, width, height, repeatNum);
+		}
+		break;
 #endif
 	}
-
 }
 
 void swapMat(ALGORITHM_CUDA_NORMAL_PARAM *param)

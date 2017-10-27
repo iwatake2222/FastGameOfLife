@@ -7,6 +7,7 @@
 #include "LogicNormalCuda.h"
 #include "LogicNormalNonTorus.h"
 #include "LogicNormalNonTorusMP.h"
+#include "ControllerView.h"
 
 LogicBase::LogicBase(int worldWidth, int worldHeight)
 {
@@ -14,6 +15,7 @@ LogicBase::LogicBase(int worldWidth, int worldHeight)
 	WORLD_HEIGHT = worldHeight;
 
 	m_matDisplay = new int[WORLD_WIDTH * WORLD_HEIGHT];
+	memset(m_matDisplay, 0x00, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
 
 	m_cmd = CMD_VIEW_2_LOGIC_NONE;
 	m_isCmdCompleted = true;
@@ -184,10 +186,10 @@ void LogicBase::threadFunc()
 			/*** Operate game logic for one generation ***/
 			std::chrono::system_clock::time_point  timeStart, timeEnd;
 			timeStart = std::chrono::system_clock::now();
-			gameLogic();	/*** <- use selected algorithm (implemented in sub class) ***/
+			gameLogic(ControllerView::getInstance()->m_skipNum);	/*** <- use selected algorithm (implemented in sub class) ***/
 			timeEnd = std::chrono::system_clock::now();
 			int timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart).count();
-			m_info.calcTime = timeElapsed;
+			m_info.calcTime = timeElapsed / ControllerView::getInstance()->m_skipNum;
 			//printf("fpsCalc = %lf\n", 1000.0 / timeElapsed);
 		}
 		if (cmd == CMD_VIEW_2_LOGIC_STEP) {

@@ -15,12 +15,11 @@ protected:
 	* don't use std::vector<std::vector<int>> because it's too late
 	* don't use 2-dimension array for copy operation later
 	*/
-	int *m_mat[2];
-	int m_matIdOld;	// this matrix is ready to display (CLEAN)
-	int m_matIdNew;	// currently this matrix is being modified using m_matIdOld (DIRTY)
+	int *m_matSrc;
+	int *m_matDst;
 
 protected:
-	virtual void gameLogic() override;
+	virtual void gameLogic(int repeatNum) override;
 	virtual void processWithBorderCheck(int x0, int x1, int y0, int y1);
 	virtual void processWithoutBorderCheck(int x0, int x1, int y0, int y1);
 	void updateCell(int x, int yLine, int cnt);

@@ -48,7 +48,7 @@ protected:
 	WORLD_INFORMATION m_info;
 
 private:
-	virtual void gameLogic() = 0;		// algorithm is implemented in sub class
+	virtual void gameLogic(int repeatNum) = 0;		// algorithm is implemented in sub class
 
 private:
 	void sendCommand(COMMAND cmd);
