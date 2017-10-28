@@ -22,7 +22,7 @@ public:
 	~WorldContext();
 
 	static WorldContext* generateFromFile();
-	static WorldContext* generateFromFile(LPWSTR filename);
+	static WorldContext* generateFromFile(LPWSTR filename, int width, int height);
 	static void saveToFile(WorldContext* context);
 };
 

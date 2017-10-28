@@ -403,26 +403,31 @@ void WorldView::onKeyboard(unsigned char key, int x, int y)
 	{
 		/* load pettern file */
 		WCHAR path[MAX_PATH];
-		int offsetX, offsetY, prm;
-		if (FileAccessor::getFilepath(path, TEXT("")) && FileAccessor::startReadingPattern(path)) {
-			while (FileAccessor::readPattern(&offsetX, &offsetY, &prm)) {
-				int x = (m_worldVisibleX0 + m_worldVisibleX1) / 2 + offsetX;
-				int y = (m_worldVisibleY0 + m_worldVisibleY1) / 2 - offsetY;
-				if (prm != 0) {
-					m_pContext->m_pLogic->setCell(x, y);
-				} else {
-					m_pContext->m_pLogic->clearCell(x, y);
+		int patternWidth, patternHeight;	// pattern size
+		int patternOffsetX, patternOffsetY;	// position in pattern
+		int prm;
+		if (FileAccessor::getFilepath(path, TEXT("(*.txt, *.*)\0*.txt;*.*\0"))) {
+			if (FileAccessor::startReadingPattern(path, &patternWidth, &patternHeight)) {
+				printf("Pattern size(%d x %d)\n", patternWidth, patternHeight);
+				while (FileAccessor::readPattern(&patternOffsetX, &patternOffsetY, &prm)) {
+					int x = (m_worldVisibleX0 + m_worldVisibleX1) / 2 + patternOffsetX - patternWidth/2;
+					int y = (m_worldVisibleY0 + m_worldVisibleY1) / 2 - (patternOffsetY - patternHeight / 2) - 1;
+					if (prm != 0) {
+						m_pContext->m_pLogic->setCell(x, y);
+					} else {
+						m_pContext->m_pLogic->clearCell(x, y);
+					}
 				}
+				FileAccessor::stop();
 			}
-			FileAccessor::stop();
 		}
 		break;
 	}
 	case 's':
 	{
-		/* load pettern file */
+		/* save pettern file */
 		WCHAR path[MAX_PATH];
-		if (FileAccessor::getFilepath(path, TEXT("")) && FileAccessor::startWritingPattern(path)) {
+		if (FileAccessor::getFilepath(path, TEXT("(*.txt, *.*)\0*.txt;*.*\0")) && FileAccessor::startWritingPattern(path)) {
 			int x0 = m_worldVisibleX0 > 0 ? m_worldVisibleX0 : 0;
 			int x1 = m_worldVisibleX1 < WORLD_WIDTH ? m_worldVisibleX1 : WORLD_WIDTH - 1;
 			int y0 = m_worldVisibleY0 > 0 ? m_worldVisibleY0 : 0;

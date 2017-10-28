@@ -9,6 +9,7 @@
 FILE * FileAccessor::m_fp;
 int FileAccessor::m_patternOffsetX, FileAccessor::m_patternOffsetY;
 int FileAccessor::m_lastReadChar;
+int FileAccessor::m_currentX, FileAccessor::m_currentY;
 
 FileAccessor::FileAccessor()
 {
@@ -17,6 +18,33 @@ FileAccessor::FileAccessor()
 
 FileAccessor::~FileAccessor()
 {
+}
+
+void FileAccessor::skipNewLine()
+{
+	/* treating new line code (\r, \n, \r\n, \n\r) */
+	wint_t readChar;
+	do {
+		readChar = fgetwc(m_fp);
+	} while (readChar == L'\r' || readChar == L'\n');
+	if (readChar != WEOF) fseek(m_fp, -1L, SEEK_CUR);
+	// current position is the top of new line
+}
+
+void FileAccessor::skipComment()
+{
+	wint_t readChar;
+	readChar = fgetwc(m_fp);
+	while (readChar == L'#' || readChar == L'!') {
+		do {
+			readChar = fgetwc(m_fp);
+		} while (readChar != L'\r' && readChar != L'\n');
+		skipNewLine();
+		readChar = fgetwc(m_fp);
+	}
+
+	fseek(m_fp, -1L, SEEK_CUR);
+	// current position is the top of non-comment line
 }
 
 bool FileAccessor::getFilepath(WCHAR *path, WCHAR *filter)
@@ -36,117 +64,72 @@ bool FileAccessor::getFilepath(WCHAR *path, WCHAR *filter)
 	return GetOpenFileName(&ofn);
 }
 
-
 void FileAccessor::stop()
 {
 	fclose(m_fp);
 }
 
-bool FileAccessor::startReadingWorld(WCHAR *path, int *width, int *height)
+/* Open FILE, get size of the pattern, then move to file pointer to the top of valid line */
+bool FileAccessor::startReadingPattern(WCHAR *path, int *width, int *height)
 {
-	bool ret = false;
+	int maxWidth = 0;
+	int maxHeight = 0;
+	int x = 0;
 	try {
 		_wfopen_s(&m_fp, path, L"r");
-		fwscanf_s(m_fp, L"%d,%d", width, height);
-		ret = true;
+		//setlocale(LC_ALL, "Japanese");
+		skipComment();
+		wint_t readChar;
+		while ((readChar = fgetwc(m_fp)) != WEOF) {
+			putchar(readChar);
+			x++;
+			if (readChar == L'\r' || readChar == L'\n') {
+				skipNewLine();
+				if (maxWidth < x) maxWidth = x;
+				x = 0;
+				maxHeight++;
+			}
+		}
+		if (maxWidth < x) maxWidth = x;	// in case the last line without \n
+		if (x != 0) maxHeight++;// in case the last line without \n
+		maxWidth--;
+		*width = maxWidth;
+		*height = maxHeight;
+		m_patternOffsetX = 0;
+		m_patternOffsetY = 0;
+		
+		fseek(m_fp, 0L, SEEK_SET);
+		skipComment();
+		// current position is the top of valid line
+		return true;
 	} catch (...) {
 		printf("Error whiel reading %s\n", path);
-		ret = false;
+		return false;
 	}
-	return ret;
-}
-
-bool FileAccessor::readPosition(int *x, int *y, int *prm)
-{
-	bool ret = false;
-	try {
-		ret = (fwscanf_s(m_fp, L"%d,%d,%d", x, y, prm) != EOF);
-	} catch (...) {
-		printf("Error whiel reading\n");
-		ret = false;
-	}
-	return ret;
-}
-
-bool FileAccessor::startWritingWorld(WCHAR *path, int width, int height)
-{
-	bool ret = false;
-	try {
-		_wfopen_s(&m_fp, path, L"w");
-		fwprintf_s(m_fp, L"%d,%d\n", width, height);
-		ret = true;
-	} catch (...) {
-		printf("Error whiel writing %s\n", path);
-		ret = false;
-	}
-	return ret;
-}
-
-bool FileAccessor::writePosition(int x, int y, int prm)
-{
-	bool ret = false;
-	try {
-		fwprintf_s(m_fp, L"%d,%d,%d\n", x, y, prm);
-		ret = true;
-	} catch (...) {
-		printf("Error whiel reading\n");
-		ret = false;
-	}
-	return ret;
-}
-
-bool FileAccessor::startReadingPattern(WCHAR *path)
-{
-	bool ret = false;
-	try {
-		_wfopen_s(&m_fp, path, L"r");
-		ret = true;
-	} catch (...) {
-		printf("Error whiel reading %s\n", path);
-		ret = false;
-	}
-	m_patternOffsetX = 0;
-	m_patternOffsetY = 0;
-	return ret;
 }
 
 bool FileAccessor::readPattern(int *offsetX, int *offsetY, int *prm)
 {
-	bool ret = false;
 	wint_t readChar;
 	try {
-		setlocale(LC_ALL, "Japanese");
-		readChar = fgetwc(m_fp);
-		while (readChar == L'#') {
-			do {
-				readChar = fgetwc(m_fp);
-			} while (readChar != L'\r' && readChar != L'\n');
-			readChar = fgetwc(m_fp);
-		}
-		while (readChar == L'\r' || readChar == L'\n') {
-			m_patternOffsetY++;
-			m_patternOffsetX = 0;
-			printf("\n");
-			wint_t ch = fgetwc(m_fp);
-			if (ch == L'\r' || ch == L'\n') {	// for \r\n
-				readChar = fgetwc(m_fp);
-				continue;
-			} else {
-				readChar = ch;
+		if ((readChar = fgetwc(m_fp)) != WEOF) {
+			if (readChar == L'\r' || readChar == L'\n') {
+				skipNewLine();
+				m_patternOffsetY++;
+				m_patternOffsetX = 0;
+				if ((readChar = fgetwc(m_fp)) == WEOF) return false;
 			}
+			*prm = (readChar == L'x') || (readChar == L'X') || (readChar == L'*') || (readChar == L'O');
+			*offsetX = m_patternOffsetX;
+			*offsetY = m_patternOffsetY;
+			m_patternOffsetX++;
+			return true;
 		}
-		if (readChar == WEOF) return false;
-		*prm = (readChar == L'x') || (readChar == L'X') || (readChar == L'*') || (readChar == L'■') || (readChar == L'O');
-		*offsetX = m_patternOffsetX;
-		*offsetY = m_patternOffsetY;
-		wprintf(L"(%d, %d) = %c(%d) ", m_patternOffsetX, m_patternOffsetY, readChar, (*prm != 0));
-		m_patternOffsetX++;
-		ret = true;
+		return false;
 	} catch (...) {
 		printf("Error whiel reading\n");
-		ret = false;
+		return false;
 	}
-	return ret;
 }
 
 bool FileAccessor::startWritingPattern(WCHAR *path)
