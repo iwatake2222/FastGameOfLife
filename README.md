@@ -1,11 +1,16 @@
 # Fast Conway's Game of Life
  - This is a CPP project for Conway's Game of Life.
- - I use OpenGL and CUDA for high speed performance.
+ - I use OpenGL, OpenMP and CUDA for high speed performance.
+
+<img src=00_doc/capture01.jpg width=50% height=50%>
+
+<img src=00_doc/Diagram_Class.jpg width=50% height=50%>
 
 ## Environment
  - Visual Studio 2017 Community (need to install)
  - OpenGL (no need to install on Windows)
  - freeglut (contained in this project and setting is done)
+ - AntTweakBar (contained in this project and setting is done)
  - CUDA Toolkit (need to install)
 	- I use cuda_9.0.176
 
