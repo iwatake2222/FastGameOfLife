@@ -197,7 +197,10 @@ void LogicBase::threadFunc()
 			m_isCmdCompleted = true;
 		}
 		
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));	/* workaround. without this, this thread occupies CPU */
+		/* workaround. without this, this thread occupies CPU */
+		std::this_thread::sleep_for(std::chrono::microseconds(1));	
+		//for (int i = 0; i < 1000; i++) std::this_thread::yield();
+
 	}
 }
 

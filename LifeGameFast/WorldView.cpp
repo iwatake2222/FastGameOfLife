@@ -123,12 +123,14 @@ void WorldView::drawCells()
 	/*** for lighter draw ***/
 	/* don't draw 1> cells in 1 pixel */
 	/* also thinned out by user setting */
-	int intervalX = (m_worldVisibleX1 - m_worldVisibleX0) / m_windowWidth;
-	int intervalY = (m_worldVisibleY1 - m_worldVisibleY0) / m_windowHeight;
+	int intervalX = ceil((m_worldVisibleX1 - m_worldVisibleX0) / m_windowWidth);
+	int intervalY = ceil((m_worldVisibleY1 - m_worldVisibleY0) / m_windowHeight);
 	if (intervalX < 1)intervalX = 1;
 	if (intervalY < 1)intervalY = 1;
 	intervalX *= ControllerView::getInstance()->m_drawInterval;
 	intervalY *= ControllerView::getInstance()->m_drawInterval;
+	if (intervalX % 2 == 0)intervalX += 1;	// avoid even count because some specific pattern may not be drawn
+	if (intervalY % 2 == 0)intervalY += 1;	// avoid even count because some specific pattern may not be drawn
 
 	int *mat = m_pContext->m_pLogic->getDisplayMat();
 
@@ -137,9 +139,9 @@ void WorldView::drawCells()
 	ILogic::WORLD_INFORMATION info;
 	m_pContext->m_pLogic->getInformation(&info);
 	int generation = info.generation;
-	for (int y = (int)fmax(m_worldVisibleY0, 0); y < (int)fmin(m_worldVisibleY1, WORLD_HEIGHT); y += intervalY) {
+	for (int y = (int)fmax(m_worldVisibleY0, 0); y <= (int)fmin(m_worldVisibleY1, WORLD_HEIGHT-1); y += intervalY) {
 		int yIndex = WORLD_WIDTH * y;
-		for (int x = (int)fmax(m_worldVisibleX0, 0); x < (int)fmin(m_worldVisibleX1, WORLD_WIDTH); x += intervalX) {
+		for (int x = (int)fmax(m_worldVisibleX0, 0); x <= (int)fmin(m_worldVisibleX1, WORLD_WIDTH-1); x += intervalX) {
 			if (mat[yIndex + x] == 0) {
 				glColor3dv(COLOR_3D_DEAD);
 #if 1

@@ -23,6 +23,8 @@ namespace AlgorithmCudaNormal
 }	// indent guard
 #endif
 
+extern int NUM_STREAM;
+
 void swapMat(ALGORITHM_CUDA_NORMAL_PARAM *param);
 }
 

@@ -13,8 +13,13 @@ namespace AlgorithmCudaNormal
 }	// indent guard
 #endif
 
+int NUM_STREAM = NUM_STREAM_MAX;
+
 void cudaInitialize(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 {
+	NUM_STREAM = height / BLOCK_SIZE_H;
+	if (NUM_STREAM > NUM_STREAM_MAX) NUM_STREAM = NUM_STREAM_MAX;
+
 	CHECK(cudaMalloc((void**)&param->devMatSrc, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int)));
 	CHECK(cudaMalloc((void**)&param->devMatDst, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int)));
 
