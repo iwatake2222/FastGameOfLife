@@ -20,14 +20,14 @@ void runForAnalysis();
 void runReferenceCode(int *matDst, const int* const matSrc, int repeatNum);
 void runTargetCode(int *matDst, const int* const matSrc, int repeatNum);
 
-const int WIDTH = 1 << 10;
-const int HEIGHT = 1 << 6;
-const int REPEAT_NUM = 10;
+const int WIDTH = 1 << 12;
+const int HEIGHT = 1 << 12;
+const int REPEAT_NUM = 1;
 
 int main()
 {
-	for(int i= 1; i < 100; i++) unitTest(i, i%2 + REPEAT_NUM);
-	//runForAnalysis();
+	//for(int i= 1; i < 100; i++) unitTest(i, i%2 + REPEAT_NUM);
+	runForAnalysis();
 
 	printf("done\n");
 	//getchar();

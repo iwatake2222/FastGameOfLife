@@ -214,8 +214,8 @@ void ControllerView::initUI()
 	TwSetParam(m_pBar, NULL, "size", TW_PARAM_CSTRING, 1, str);
 	TwDefine(" GLOBAL fontsize=3 fontstyle=fixed ");
 
-	TwAddVarRW(m_pBar, "width", TW_TYPE_INT32, &m_worldWidth, " min=32 max=8192 step=32 label='Width' group='World Parameters' ");
-	TwAddVarRW(m_pBar, "height", TW_TYPE_INT32, &m_worldHeight, " min=32 max=8192 step=32 label='Height' group='World Parameters' ");
+	TwAddVarRW(m_pBar, "width", TW_TYPE_INT32, &m_worldWidth, " min=32 max=16384 step=32 label='Width' group='World Parameters' ");
+	TwAddVarRW(m_pBar, "height", TW_TYPE_INT32, &m_worldHeight, " min=32 max=16384 step=32 label='Height' group='World Parameters' ");
 	TwEnumVal algorithmEV[] = { 
 		{ ALGORITHM_NORMAL, "Normal" },
 		{ ALGORITHM_NORMAL_MP, "Normal Open MP" },

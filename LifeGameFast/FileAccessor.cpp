@@ -81,7 +81,7 @@ bool FileAccessor::startReadingPattern(WCHAR *path, int *width, int *height)
 		skipComment();
 		wint_t readChar;
 		while ((readChar = fgetwc(m_fp)) != WEOF) {
-			putchar(readChar);
+			//putchar(readChar);
 			x++;
 			if (readChar == L'\r' || readChar == L'\n') {
 				skipNewLine();

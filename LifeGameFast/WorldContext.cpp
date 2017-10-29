@@ -7,13 +7,6 @@
 #include "FileAccessor.h"
 #include "Values.h"
 
-#include <windows.h>
-#include <Commdlg.h>
-#include <tchar.h>
-#pragma comment(lib, "Comdlg32.lib")
-#pragma comment(lib, "User32.lib")
-
-
 WorldContext::WorldContext()
 {
 	WORLD_WIDTH = ControllerView::getInstance()->m_worldWidth;
