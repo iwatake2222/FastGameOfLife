@@ -2,9 +2,9 @@
  - This is a CPP project for Conway's Game of Life.
  - I use OpenGL, OpenMP and CUDA for high speed performance.
 
-<img src=00_doc/capture01.jpg width=45% height=45%>
-<img src=00_doc/Result.jpg width=45% height=45%>
-<img src=00_doc/Diagram_Class.jpg width=50% height=50%>
+<img src=00_doc/capture01.jpg width=60% height=60%>
+<img src=00_doc/Result.jpg width=60% height=60%>
+<img src=00_doc/Diagram_Class.jpg width=60% height=60%>
 
 * Link to Youtube
 
