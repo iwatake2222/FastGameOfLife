@@ -1,13 +1,14 @@
 
 #include "stdafx.h"
 #include "Values.h"
+#include "ControllerView.h"
 #include "LogicBase.h"
 #include "LogicNormal.h"
 #include "LogicNormalMP.h"
 #include "LogicNormalCuda.h"
 #include "LogicNormalNonTorus.h"
 #include "LogicNormalNonTorusMP.h"
-#include "ControllerView.h"
+#include "LogicGroup.h"
 
 LogicBase::LogicBase(int worldWidth, int worldHeight)
 {
@@ -101,6 +102,7 @@ bool LogicBase::setCell(int worldX, int worldY, int prm1, int prm2, int prm3, in
 {
 	if (m_isCalculating) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	if (worldX >= 0 && worldX < WORLD_WIDTH && worldY >= 0 && worldY < WORLD_HEIGHT) {
+		if(!m_isMatrixUpdated)m_info.generation++;
 		m_isMatrixUpdated = true;
 		return true;
 	}
@@ -111,6 +113,7 @@ bool LogicBase::clearCell(int worldX, int worldY)
 {
 	if (m_isCalculating) sendCommand(CMD_VIEW_2_LOGIC_STOP);
 	if (worldX >= 0 && worldX < WORLD_WIDTH && worldY >= 0 && worldY < WORLD_HEIGHT) {
+		if (!m_isMatrixUpdated)m_info.generation++;
 		m_isMatrixUpdated = true;
 		return true;
 	}
@@ -232,6 +235,8 @@ ILogic* LogicBase::generateLogic(int algorithm, int width, int height)
 		return new LogicNormalNonTorusMP(width, height);
 	//case ALGORITHM_NORMAL_NON_TORUS_CUDA:
 	//	return new LogicNormal(width, height);
+	case ALGORITHM_GROUP:
+		return new LogicGroup(width, height);
 	default:
 		return new LogicNormal(width, height);
 	}

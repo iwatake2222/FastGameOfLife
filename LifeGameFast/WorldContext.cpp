@@ -2,7 +2,7 @@
 #include "WorldContext.h"
 #include "WorldView.h"
 #include "LogicBase.h"
-#include "AnalView.h"
+#include "AnalViewAge.h"
 #include "ControllerView.h"
 #include "FileAccessor.h"
 #include "Values.h"
@@ -16,10 +16,11 @@ WorldContext::WorldContext()
 	WORLD_WIDTH = ((WORLD_WIDTH + (32 - 1)) / 32) * 32;
 	WORLD_HEIGHT = ((WORLD_HEIGHT + (32 - 1)) / 32) * 32;
 
-	m_pLogic = LogicBase::generateLogic(ControllerView::getInstance()->m_worldAlgorithm, WORLD_WIDTH, WORLD_HEIGHT);
+	m_algorithm = ControllerView::getInstance()->m_worldAlgorithm;
+	m_pLogic = LogicBase::generateLogic(m_algorithm, WORLD_WIDTH, WORLD_HEIGHT);
 	m_pLogic->initialize();
 	m_pView = new WorldView(this);
-	m_pAnalView = new AnalView(this);
+	m_pAnalView = AnalView::createAppropreateAnalView(this);
 
 	ControllerView::getInstance()->setCurrentWorldContext(this);
 }
@@ -34,10 +35,12 @@ WorldContext::WorldContext(int width, int height, ALGORITHM algorithm, int windo
 	WORLD_HEIGHT = ((WORLD_HEIGHT + (32 - 1)) / 32) * 32;
 
 	if (algorithm == ALGORITHM_AUTO) algorithm = ControllerView::getInstance()->m_worldAlgorithm;
+
+	m_algorithm = algorithm;
 	m_pLogic = LogicBase::generateLogic(algorithm, WORLD_WIDTH, WORLD_HEIGHT);
 	m_pLogic->initialize();
 	m_pView = new WorldView(this, windowX, windowY, windowWidth, windowHeight);
-	m_pAnalView = new AnalView(this);
+	m_pAnalView = AnalView::createAppropreateAnalView(this);
 
 	ControllerView::getInstance()->setCurrentWorldContext(this);
 }

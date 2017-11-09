@@ -47,6 +47,7 @@ private:
 private:
 	void initOpenGL();
 	void initView();
+	void drawDeadCellsAll();
 	void drawGrid();
 	void drawCells();
 	void convertPosWindow2World(int x, int y, int* worldX, int* worldY);

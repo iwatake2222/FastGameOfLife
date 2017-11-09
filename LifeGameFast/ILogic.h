@@ -21,6 +21,7 @@ public:
 	virtual void toggleRun() = 0;
 	virtual void stepRun() = 0;
 	virtual int* getDisplayMat() = 0;
+	virtual void convertDisplay2Color(int displayedCell, double color[3]) = 0;
 	virtual bool toggleCell(int worldX, int worldY, int prm1 = 0, int prm2 = 0, int prm3 = 0, int prm4 = 0) = 0;
 	virtual bool setCell(int worldX, int worldY, int prm1 = 0, int prm2 = 0, int prm3 = 0, int prm4 = 0) = 0;
 	virtual bool clearCell(int worldX, int worldY) = 0;

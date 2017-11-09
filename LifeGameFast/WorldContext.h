@@ -16,6 +16,8 @@ public:
 	IView* m_pView;
 	IView* m_pAnalView;
 
+	ALGORITHM m_algorithm;
+
 public:
 	WorldContext();
 	WorldContext(int width, int height, ALGORITHM algorithm = ALGORITHM_AUTO, int windowX = DEFAULT_WINDOW_X, int windowY = DEFAULT_WINDOW_Y, int windowWidth = DEFAULT_WINDOW_WIDTH, int windowHeight = DEFAULT_WINDOW_HEIGHT);

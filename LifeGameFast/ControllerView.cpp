@@ -11,7 +11,7 @@ ControllerView::ControllerView()
 	m_worldHeight = DEFAULT_WORLD_HEIGHT;
 	m_worldAlgorithm = DEFAULT_ALGORITHM;
 	m_density = DEFAULT_CELLS_DENSITY;
-	m_prm1 = 0;
+	m_prm1 = 1;
 	m_prm2 = 0;
 	m_prm3 = 0;
 	m_prm4 = 0;
@@ -222,7 +222,8 @@ void ControllerView::initUI()
 		{ ALGORITHM_NORMAL_CUDA, "Normal CUDA" },
 		{ ALGORITHM_NORMAL_NON_TORUS, "Normal(Non Torus)" },
 		{ ALGORITHM_NORMAL_NON_TORUS_MP, "Normal(Non Torus) Open MP" },
-		{ ALGORITHM_NORMAL_NON_TORUS_CUDA, "Normal(Non Torus) CUDA" },
+		//{ ALGORITHM_NORMAL_NON_TORUS_CUDA, "Normal(Non Torus) CUDA" },
+		{ ALGORITHM_GROUP, "Group" },
 	};
 	TwType algorithmType = TwDefineEnum("AlgorithmType", algorithmEV, ALGORITHM_NUM);
 	TwAddVarRW(m_pBar, "Algorithm", algorithmType, &m_worldAlgorithm, " keyIncr='<' keyDecr='>' help='Change algorithm.' group='World Parameters' ");
@@ -250,7 +251,7 @@ void ControllerView::initUI()
 	TwAddButton(m_pBar, "btnAllocAll", ControllerView::onClickBtnAllocAll, this, " label='Alloc all [A]' group='Operations' ");
 	TwAddButton(m_pBar, "btnClearAll", ControllerView::onClickBtnClearAll, this, " label='Clear all [C]' group='Operations' ");
 	TwAddVarRW(m_pBar, "density", TW_TYPE_INT32, &m_density, "min=0 max=100 step=1 label='Density' group='Operations' ");
-	TwAddVarRW(m_pBar, "prm1", TW_TYPE_INT32, &m_prm1, "min=0 max=10 step=1 label='Group' group='Operations' ");
+	TwAddVarRW(m_pBar, "prm1", TW_TYPE_INT32, &m_prm1, "min=0 max=1 step=1 label='Group' group='Operations' ");
 	TwAddVarRW(m_pBar, "prm2", TW_TYPE_INT32, &m_prm2, "min=0 max=100 step=1 label='prm2' group='Operations' ");
 	TwAddVarRW(m_pBar, "prm3", TW_TYPE_INT32, &m_prm3, "min=0 max=100 step=1 label='prm3' group='Operations' ");
 	TwAddVarRW(m_pBar, "prm4", TW_TYPE_INT32, &m_prm4, "min=0 max=100 step=1 label='prm4' group='Operations' ");

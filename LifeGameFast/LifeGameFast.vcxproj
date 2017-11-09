@@ -156,10 +156,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AnalView.h" />
+    <ClInclude Include="AnalViewAge.h" />
+    <ClInclude Include="AnalViewGroup.h" />
     <ClInclude Include="ControllerView.h" />
     <ClInclude Include="FileAccessor.h" />
     <ClInclude Include="ILogic.h" />
     <ClInclude Include="IView.h" />
+    <ClInclude Include="LogicGroup.h" />
     <ClInclude Include="LogicNormalCuda.h" />
     <ClInclude Include="LogicNormalNonTorus.h" />
     <ClInclude Include="LogicNormalNonTorusMP.h" />
@@ -175,9 +178,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AnalView.cpp" />
+    <ClCompile Include="AnalViewAge.cpp" />
+    <ClCompile Include="AnalViewGroup.cpp" />
     <ClCompile Include="ControllerView.cpp" />
     <ClCompile Include="FileAccessor.cpp" />
     <ClCompile Include="LifeGameFast.cpp" />
+    <ClCompile Include="LogicGroup.cpp" />
     <ClCompile Include="LogicNormalCuda.cpp" />
     <ClCompile Include="LogicNormalNonTorus.cpp" />
     <ClCompile Include="LogicNormalNonTorusMP.cpp" />

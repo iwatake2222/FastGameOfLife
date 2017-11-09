@@ -3,6 +3,11 @@
 #include "algorithmCudaNormal.h"
 #include "ControllerView.h"
 
+/*
+* Note: LogicNormalCuda doesn't use m_matSrc, m_matDst. uses m_cudaParam.hostMatSrc
+*/
+
+
 using namespace AlgorithmCudaNormal;
 
 LogicNormalCuda::LogicNormalCuda(int worldWidth, int worldHeight)

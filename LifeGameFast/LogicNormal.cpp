@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "LogicNormal.h"
+#include "Values.h"
 
 LogicNormal::LogicNormal(int worldWidth, int worldHeight)  
 	: LogicBase(worldWidth, worldHeight)
@@ -19,17 +20,47 @@ LogicNormal::~LogicNormal()
 	m_matDst = 0;
 }
 
+inline int LogicNormal::convertCell2Display(int cell)
+{
+	return cell;
+}
+
+inline void LogicNormal::convertDisplay2Color(int displayedCell, double color[3])
+{
+	const double* colorTemp;
+	int generation = m_info.generation;
+	if (displayedCell == 0) {
+		colorTemp = COLOR_3D_DEAD;
+	} else if (generation == 0 || (displayedCell * 100) / generation < 20) {
+		colorTemp = COLOR_3D_ALIVE0;
+	} else if ((displayedCell * 100) / generation < 40) {
+		colorTemp = COLOR_3D_ALIVE1;
+	} else if ((displayedCell * 100) / generation < 60) {
+		colorTemp = COLOR_3D_ALIVE2;
+	} else if ((displayedCell * 100) / generation < 80) {
+		colorTemp = COLOR_3D_ALIVE3;
+	} else {
+		colorTemp = COLOR_3D_ALIVE4;
+	}
+	memcpy(color, colorTemp, sizeof(double) * 3);
+}
+
 int* LogicNormal::getDisplayMat() {
-	if (m_lastRetrievedGenration != m_info.generation && !m_isMatrixUpdated) {
+	if (m_lastRetrievedGenration != m_info.generation) {
 		/* copy pixel data from m_matSrc -> m_matDisplay when updated (when generation proceeded) */
-		/* if user updated m_matDisplay(m_isMatrixUpdated is true), use m_matDisplay directly */
 		int tryCnt = 0;
 		while (!m_mutexMatDisplay.try_lock()) {
 			// wait if thread is copying matrix data. give up after several tries not to decrease draw performance
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			if (tryCnt++ > 10) return m_matDisplay;
 		}
+#if 1
 		memcpy(m_matDisplay, m_matSrc, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
+#else
+		for (int i = 0; i < WORLD_WIDTH * WORLD_HEIGHT; i++) {
+			m_matDisplay[i] = convertCell2Display(m_matSrc[i]);
+		}
+#endif
 		m_lastRetrievedGenration = m_info.generation;
 		m_mutexMatDisplay.unlock();
 	}
@@ -52,7 +83,8 @@ bool LogicNormal::toggleCell(int worldX, int worldY, int prm1, int prm2, int prm
 bool LogicNormal::setCell(int worldX, int worldY, int prm1, int prm2, int prm3, int prm4)
 {
 	if (LogicBase::setCell(worldX, worldY, prm1, prm2, prm3, prm4)) {
-		m_matDisplay[WORLD_WIDTH * worldY + worldX] = CELL_ALIVE;
+		m_matSrc[WORLD_WIDTH * worldY + worldX] = CELL_ALIVE;
+		m_matDisplay[WORLD_WIDTH * worldY + worldX] = convertCell2Display(m_matSrc[WORLD_WIDTH * worldY + worldX]);
 		return true;
 	}
 	return false;
@@ -61,7 +93,8 @@ bool LogicNormal::setCell(int worldX, int worldY, int prm1, int prm2, int prm3, 
 bool LogicNormal::clearCell(int worldX, int worldY)
 {
 	if (LogicBase::clearCell(worldX, worldY)) {
-		m_matDisplay[WORLD_WIDTH * worldY + worldX] = CELL_DEAD;
+		m_matSrc[WORLD_WIDTH * worldY + worldX] = CELL_DEAD;
+		m_matDisplay[WORLD_WIDTH * worldY + worldX] = convertCell2Display(m_matSrc[WORLD_WIDTH * worldY + worldX]);
 		return true;
 	}
 	return false;
@@ -69,11 +102,11 @@ bool LogicNormal::clearCell(int worldX, int worldY)
 
 void LogicNormal::gameLogic(int repeatNum)
 {
-	if (m_isMatrixUpdated) {
-		/* copy pixel data from m_matDisplay -> m_matSrc when updated (when the first time, or when user put/clear cells) */
-		memcpy(m_matSrc, m_matDisplay, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
-		m_isMatrixUpdated = 0;
-	}
+	//if (m_isMatrixUpdated) {
+	//	/* copy pixel data from m_matDisplay -> m_matSrc when updated (when the first time, or when user put/clear cells) */
+	//	memcpy(m_matSrc, m_matDisplay, sizeof(int) * WORLD_WIDTH * WORLD_HEIGHT);
+	//	m_isMatrixUpdated = 0;
+	//}
 
 	m_mutexMatDisplay.lock();	// wait if view is copying matrix data 
 	for (int i = 0; i < repeatNum; i++) {
@@ -111,7 +144,7 @@ void LogicNormal::processWithBorderCheck(int x0, int x1, int y0, int y1)
 					int roundX = xx;
 					if (roundX >= WORLD_WIDTH) roundX = 0;
 					if (roundX < 0) roundX = WORLD_WIDTH - 1;
-					if (m_matSrc[WORLD_WIDTH * roundY + roundX] != 0) {
+					if (m_matSrc[WORLD_WIDTH * roundY + roundX] != CELL_DEAD) {
 						cnt++;
 					}
 				}
@@ -130,7 +163,7 @@ void LogicNormal::processWithoutBorderCheck(int x0, int x1, int y0, int y1)
 			int cnt = 0;
 			for (int yy = y - 1; yy <= y + 1; yy++) {
 				for (int xx = x - 1; xx <= x + 1; xx++) {
-					if (m_matSrc[WORLD_WIDTH * yy + xx] != 0) {
+					if (m_matSrc[WORLD_WIDTH * yy + xx] != CELL_DEAD) {
 						cnt++;
 					}
 				}
@@ -143,18 +176,18 @@ void LogicNormal::processWithoutBorderCheck(int x0, int x1, int y0, int y1)
 inline void LogicNormal::updateCell(int x, int yLine, int cnt)
 {
 	/* Note: yLine is index of array (yLine = y*width) */
-	if (m_matSrc[yLine + x] == 0) {
+	if (m_matSrc[yLine + x] == CELL_DEAD) {
 		if (cnt == 3) {
 			// birth
-			m_matDst[yLine + x] = 1;
+			m_matDst[yLine + x] = CELL_ALIVE;
 		} else {
 			// keep dead
-			m_matDst[yLine + x] = 0;
+			m_matDst[yLine + x] = CELL_DEAD;
 		}
 	} else {
 		if (cnt <= 2 || cnt >= 5) {
 			// die
-			m_matDst[yLine + x] = 0;
+			m_matDst[yLine + x] = CELL_DEAD;
 		} else {
 			// keep alive (age++)
 			m_matDst[yLine + x] = m_matSrc[yLine + x] + 1;

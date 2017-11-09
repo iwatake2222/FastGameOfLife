@@ -26,7 +26,7 @@ void LogicNormalMP::processWithBorderCheck(int x0, int x1, int y0, int y1)
 					int roundX = xx;
 					if (roundX >= WORLD_WIDTH) roundX = 0;
 					if (roundX < 0) roundX = WORLD_WIDTH - 1;
-					if (m_matSrc[WORLD_WIDTH * roundY + roundX] != 0) {
+					if (m_matSrc[WORLD_WIDTH * roundY + roundX] != CELL_DEAD) {
 						cnt++;
 					}
 				}
@@ -46,7 +46,7 @@ void LogicNormalMP::processWithoutBorderCheck(int x0, int x1, int y0, int y1)
 			int cnt = 0;
 			for (int yy = y - 1; yy <= y + 1; yy++) {
 				for (int xx = x - 1; xx <= x + 1; xx++) {
-					if (m_matSrc[WORLD_WIDTH * yy + xx] != 0) {
+					if (m_matSrc[WORLD_WIDTH * yy + xx] != CELL_DEAD) {
 						cnt++;
 					}
 				}

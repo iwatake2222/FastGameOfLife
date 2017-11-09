@@ -2,7 +2,7 @@
 #include "WorldView.h"
 #include "WindowManager.h"
 #include "ControllerView.h"
-#include "AnalView.h"
+#include "AnalViewAge.h"
 #include "Values.h"
 #include "FileAccessor.h"
 
@@ -74,6 +74,17 @@ void WorldView::initView()
 	glFlush();
 }
 
+void WorldView::drawDeadCellsAll()
+{
+	glColor3dv(COLOR_3D_DEAD);
+	glBegin(GL_QUADS);
+	glVertex2d(0, 0);
+	glVertex2d(WORLD_WIDTH, 0);
+	glVertex2d(WORLD_WIDTH, WORLD_HEIGHT);
+	glVertex2d(0, WORLD_HEIGHT);
+	glEnd();
+}
+
 void WorldView::drawGrid()
 {
 	/* calculate the best interval for thinning grid line according to current view size */
@@ -136,35 +147,22 @@ void WorldView::drawCells()
 
 	glBegin(GL_QUADS);
 	/* draw only visible area */
-	ILogic::WORLD_INFORMATION info;
-	m_pContext->m_pLogic->getInformation(&info);
-	int generation = info.generation;
-	for (int y = (int)fmax(m_worldVisibleY0, 0); y <= (int)fmin(m_worldVisibleY1, WORLD_HEIGHT-1); y += intervalY) {
+	int ymin = (int)fmax(m_worldVisibleY0, 0);
+	int ymax = (int)fmin(m_worldVisibleY1, WORLD_HEIGHT - 1);
+	int xmin = (int)fmax(m_worldVisibleX0, 0);
+	int xmax = (int)fmin(m_worldVisibleX1, WORLD_WIDTH - 1);
+	for (int y = ymin; y <= ymax; y += intervalY) {
 		int yIndex = WORLD_WIDTH * y;
-		for (int x = (int)fmax(m_worldVisibleX0, 0); x <= (int)fmin(m_worldVisibleX1, WORLD_WIDTH-1); x += intervalX) {
-			if (mat[yIndex + x] == 0) {
-				glColor3dv(COLOR_3D_DEAD);
-#if 1
-			} else if (generation == 0 || (mat[yIndex + x]*100) / generation < 20) {
-				glColor3dv(COLOR_3D_ALIVE0);
-			} else if ((mat[yIndex + x] * 100) / generation < 40) {
-				glColor3dv(COLOR_3D_ALIVE1);
-			} else if ((mat[yIndex + x] * 100) / generation < 60) {
-				glColor3dv(COLOR_3D_ALIVE2);
-			} else if ((mat[yIndex + x] * 100) / generation < 80) {
-				glColor3dv(COLOR_3D_ALIVE3);
-			} else {
-				glColor3dv(COLOR_3D_ALIVE4);
+		for (int x = xmin; x <= xmax; x += intervalX) {
+			if (mat[yIndex + x] != 0) {	// draw alive cells only
+				double color3d[3];
+				m_pContext->m_pLogic->convertDisplay2Color(mat[yIndex + x], color3d);
+				glColor3dv(color3d);
+				glVertex2d(x + 0, y + 0);
+				glVertex2d(x + intervalX, y + 0);
+				glVertex2d(x + intervalX, y + intervalY);
+				glVertex2d(x + 0, y + intervalY);
 			}
-#else
-			} else {
-				glColor3dv(COLOR_3D_CELL_ALIVE);
-			}
-#endif
-			glVertex2d(x + 0, y + 0);
-			glVertex2d(x + intervalX, y + 0);
-			glVertex2d(x + intervalX, y + intervalY);
-			glVertex2d(x + 0, y + intervalY);
 		}
 	}
 	glEnd();
@@ -177,6 +175,7 @@ void WorldView::onUpdate(void)
 	glLoadIdentity();
 	glOrtho(m_worldVisibleX0, m_worldVisibleX1, m_worldVisibleY0, m_worldVisibleY1, -1.0, 1.0);
 
+	drawDeadCellsAll();
 	drawCells();
 	drawGrid();
 
@@ -235,7 +234,7 @@ void WorldView::onClick(int button, int state, int x, int y)
 		convertPosWindow2World(x, y, &worldX, &worldY);
 		if ((m_previousLDragXWorld == worldX) && (m_previousLDragYWorld == worldY)) {
 			/* on clicked, toggle the clicked cell */
-			m_pContext->m_pLogic->toggleCell(worldX, worldY);
+			m_pContext->m_pLogic->toggleCell(worldX, worldY, ControllerView::getInstance()->m_prm1);
 			glutPostRedisplay();
 		}
 		m_previousLDragXWorld = INVALID_NUM;
@@ -265,7 +264,7 @@ void WorldView::onDrag(int x, int y)
 		/* left button drag to draw cells */
 		int worldX = 0, worldY = 0;
 		convertPosWindow2World(x, y, &worldX, &worldY);
-		m_pContext->m_pLogic->setCell(worldX, worldY);
+		m_pContext->m_pLogic->setCell(worldX, worldY, ControllerView::getInstance()->m_prm1);
 		glutPostRedisplay();
 	}
 
@@ -363,7 +362,7 @@ void WorldView::onKeyboard(unsigned char key, int x, int y)
 	switch (key) {
 	case 'a':
 		density = ControllerView::getInstance()->m_density;
-		m_pContext->m_pLogic->allocCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, density);
+		m_pContext->m_pLogic->allocCells((int)m_worldVisibleX0, (int)m_worldVisibleX1, (int)m_worldVisibleY0, (int)m_worldVisibleY1, density, ControllerView::getInstance()->m_prm1);
 		glutPostRedisplay();
 		break;
 	case 'c':
@@ -372,7 +371,7 @@ void WorldView::onKeyboard(unsigned char key, int x, int y)
 		break;
 	case 'A':
 		density = ControllerView::getInstance()->m_density;
-		m_pContext->m_pLogic->allocCells(0, WORLD_WIDTH, 0, WORLD_HEIGHT, density);
+		m_pContext->m_pLogic->allocCells(0, WORLD_WIDTH, 0, WORLD_HEIGHT, density, ControllerView::getInstance()->m_prm1);
 		m_pContext->m_pLogic->resetInformation();
 		glutPostRedisplay();
 		break;
@@ -389,7 +388,7 @@ void WorldView::onKeyboard(unsigned char key, int x, int y)
 		break;
 	case 'i':
 		if (m_pContext->m_pAnalView == NULL) {
-			new AnalView(m_pContext);
+			AnalView::createAppropreateAnalView(m_pContext);
 		} else {
 			delete m_pContext->m_pAnalView;
 		}
@@ -415,7 +414,7 @@ void WorldView::onKeyboard(unsigned char key, int x, int y)
 					int x = (m_worldVisibleX0 + m_worldVisibleX1) / 2 + patternOffsetX - patternWidth/2;
 					int y = (m_worldVisibleY0 + m_worldVisibleY1) / 2 - (patternOffsetY - patternHeight / 2) - 1;
 					if (prm != 0) {
-						m_pContext->m_pLogic->setCell(x, y);
+						m_pContext->m_pLogic->setCell(x, y, ControllerView::getInstance()->m_prm1);
 					} else {
 						m_pContext->m_pLogic->clearCell(x, y);
 					}
