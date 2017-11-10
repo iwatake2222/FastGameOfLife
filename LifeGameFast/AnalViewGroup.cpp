@@ -13,7 +13,7 @@ AnalViewGroup::~AnalViewGroup()
 {
 }
 
-void AnalViewGroup::UpdateAnalInfo()
+void AnalViewGroup::updateAnalInfo()
 {
 	ANAL_INFORMATION newInfo = { 0 };
 	ILogic::WORLD_INFORMATION worldInfo;
@@ -49,19 +49,19 @@ void AnalViewGroup::analyseInformation(ANAL_INFORMATION *info)
 		int yIndex = worldWidth * y;
 		for (int x = 0; x < worldWidth; x++) {
 			if (mat[yIndex + x] == 0) {
-			} else if (mat[yIndex + x] < LogicGroup::PURE_GROUP_A*1.05) {
+			} else if (mat[yIndex + x] <= LogicGroup::PURE_GROUP_A*1.05) {	// 95% <= A <= 100%
 				info->numAlive++;
 				info->numAliveGroupA_Pure++;
-			} else if (mat[yIndex + x] <= LogicGroup::PURE_GROUP_A * 1.25) {
+			} else if (mat[yIndex + x] <= LogicGroup::PURE_GROUP_A * 1.4) {	// 60% <= A < 95%
 				info->numAlive++;
 				info->numAliveGroupA_Quater++;
-			} else if (mat[yIndex + x] < LogicGroup::PURE_GROUP_A * 1.75) {
+			} else if (mat[yIndex + x] < LogicGroup::PURE_GROUP_A * 1.6) {	// 40% < A, B < 60%
 				info->numAlive++;
 				info->numAliveGroup_Half++;
-			} else if (mat[yIndex + x] < LogicGroup::PURE_GROUP_B*0.95) {
+			} else if (mat[yIndex + x] < LogicGroup::PURE_GROUP_B*0.95) {	// 60% <= B < 95%
 				info->numAlive++;
 				info->numAliveGroupB_Quater++;
-			} else if (mat[yIndex + x] <= LogicGroup::PURE_GROUP_B) {
+			} else if (mat[yIndex + x] <= LogicGroup::PURE_GROUP_B) {	// 95% <= B <= 100%
 				info->numAlive++;
 				info->numAliveGroupB_Pure++;
 			} else {

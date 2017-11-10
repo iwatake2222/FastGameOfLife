@@ -223,7 +223,8 @@ void ControllerView::initUI()
 		{ ALGORITHM_NORMAL_NON_TORUS, "Normal(Non Torus)" },
 		{ ALGORITHM_NORMAL_NON_TORUS_MP, "Normal(Non Torus) Open MP" },
 		//{ ALGORITHM_NORMAL_NON_TORUS_CUDA, "Normal(Non Torus) CUDA" },
-		{ ALGORITHM_GROUP, "Group" },
+		{ ALGORITHM_GROUP_MP, "Group Open MP" },
+		{ ALGORITHM_GROUP_CUDA, "Group CUDA" },		
 	};
 	TwType algorithmType = TwDefineEnum("AlgorithmType", algorithmEV, ALGORITHM_NUM);
 	TwAddVarRW(m_pBar, "Algorithm", algorithmType, &m_worldAlgorithm, " keyIncr='<' keyDecr='>' help='Change algorithm.' group='World Parameters' ");

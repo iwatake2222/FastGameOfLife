@@ -15,10 +15,8 @@ private:
 
 	std::deque<ANAL_INFORMATION> analInfoHistory;
 
-	int m_lastAnalyzedGeneration;
-
 private:
-	virtual void UpdateAnalInfo() override;
+	virtual void updateAnalInfo() override;
 	void analyseInformation(ANAL_INFORMATION *info);
 	void displayInformationGraph();
 	void displayInformationText(ANAL_INFORMATION* info);

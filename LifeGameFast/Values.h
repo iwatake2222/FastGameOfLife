@@ -10,11 +10,11 @@ static const double COLOR_3D_ALIVE1[] = { 1.0, 0.5, 0.5 };
 static const double COLOR_3D_ALIVE2[] = { 1.0, 1.0, 0.2 };
 static const double COLOR_3D_ALIVE3[] = { 0.2, 1.0, 0.2 };
 static const double COLOR_3D_ALIVE4[] = { 0.2, 0.8, 1.0 };
-static const double COLOR_3D_ALIVE_GROUP_A[] = { 2.0, 0.0, 0.5 };
-static const double COLOR_3D_ALIVE_GROUP_B[] = { 0.0, 2.0, 0.5 };
-static const double COLOR_3D_ALIVE_GROUP_A75[] = { 1.5, 0.5, 0.5 };
-static const double COLOR_3D_ALIVE_GROUP_HALF[] = { 1.0, 1.0, 0.5 };
-static const double COLOR_3D_ALIVE_GROUP_B75[] = { 0.5, 1.5, 0.5 };
+static const double COLOR_3D_ALIVE_GROUP_A[] = { 2.0, 0.0, 0.2 };
+static const double COLOR_3D_ALIVE_GROUP_B[] = { 0.0, 2.0, 0.2 };
+static const double COLOR_3D_ALIVE_GROUP_A75[] = { 1.5, 0.5, 0.2 };
+static const double COLOR_3D_ALIVE_GROUP_HALF[] = { 1.0, 1.0, 0.2 };
+static const double COLOR_3D_ALIVE_GROUP_B75[] = { 0.5, 1.5, 0.2 };
 
 typedef enum {
 	ALGORITHM_NORMAL = 0,
@@ -23,19 +23,20 @@ typedef enum {
 	ALGORITHM_NORMAL_NON_TORUS,
 	ALGORITHM_NORMAL_NON_TORUS_MP,
 	//ALGORITHM_NORMAL_NON_TORUS_CUDA,
-	ALGORITHM_GROUP,
+	ALGORITHM_GROUP_MP,
+	ALGORITHM_GROUP_CUDA,
 	ALGORITHM_NUM,
 	ALGORITHM_AUTO = 99,	// from controller view
 } ALGORITHM;
 
-//static const int DEFAULT_WORLD_WIDTH = 32;
-//static const int DEFAULT_WORLD_HEIGHT = 32;
-static const int DEFAULT_WORLD_WIDTH = 512;
-static const int DEFAULT_WORLD_HEIGHT = 512;
+static const int DEFAULT_WORLD_WIDTH = 2048;
+static const int DEFAULT_WORLD_HEIGHT = 2048;
+//static const int DEFAULT_WORLD_WIDTH = 512;
+//static const int DEFAULT_WORLD_HEIGHT = 512;
 static const int DEFAULT_CELLS_DENSITY = 20;
 static const int DEFAULT_DRAW_INTERVAL = 1;
 static const int DEFAULT_SKIP_NUM = 1;
-static const ALGORITHM DEFAULT_ALGORITHM = ALGORITHM_NORMAL;
+static const ALGORITHM DEFAULT_ALGORITHM = ALGORITHM_GROUP_CUDA;
 
 static const int DEFAULT_WINDOW_WIDTH = 640;
 static const int DEFAULT_WINDOW_HEIGHT = 480;

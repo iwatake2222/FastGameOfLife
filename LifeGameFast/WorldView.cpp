@@ -422,6 +422,7 @@ void WorldView::onKeyboard(unsigned char key, int x, int y)
 				FileAccessor::stop();
 			}
 		}
+		((AnalView*)m_pContext->m_pAnalView)->refresh();	// todo: without cast
 		break;
 	}
 	case 's':

@@ -31,6 +31,8 @@ protected:
 	
 	unsigned int m_maxGraphY;
 
+	int m_lastAnalyzedGeneration;
+
 protected:
 	void initView();
 
@@ -38,7 +40,7 @@ protected:
 	void writeTextArea(int line, char* str);
 
 	void drawBackGround(void);
-	virtual void UpdateAnalInfo() = 0;
+	virtual void updateAnalInfo() = 0;
 
 	AnalView(WorldContext* pContext);	// created by createAppropreateAnalView
 	virtual ~AnalView();
@@ -46,6 +48,7 @@ protected:
 public:
 	static IView* createAppropreateAnalView(WorldContext* pContext);
 
+	void refresh();
 	void onUpdate(void);
 	void onResize(int w, int h);
 	void onClick(int button, int state, int x, int y);

@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LifeGameFast", "LifeGameFas
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AlgorithmCudaNormal", "AlgorithmCudaNormal\AlgorithmCudaNormal.vcxproj", "{CFFDC796-D5BB-4D83-9828-6481F87D33D8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AlgorithmCudaGroup", "AlgorithmCudaGroup\AlgorithmCudaGroup.vcxproj", "{94DE81A8-9AFC-41C3-91B5-9273B9024419}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -29,6 +31,12 @@ Global
 		{CFFDC796-D5BB-4D83-9828-6481F87D33D8}.Release|x64.ActiveCfg = Release|x64
 		{CFFDC796-D5BB-4D83-9828-6481F87D33D8}.Release|x64.Build.0 = Release|x64
 		{CFFDC796-D5BB-4D83-9828-6481F87D33D8}.Release|x86.ActiveCfg = Release|x64
+		{94DE81A8-9AFC-41C3-91B5-9273B9024419}.Debug|x64.ActiveCfg = Debug|x64
+		{94DE81A8-9AFC-41C3-91B5-9273B9024419}.Debug|x64.Build.0 = Debug|x64
+		{94DE81A8-9AFC-41C3-91B5-9273B9024419}.Debug|x86.ActiveCfg = Debug|x64
+		{94DE81A8-9AFC-41C3-91B5-9273B9024419}.Release|x64.ActiveCfg = Release|x64
+		{94DE81A8-9AFC-41C3-91B5-9273B9024419}.Release|x64.Build.0 = Release|x64
+		{94DE81A8-9AFC-41C3-91B5-9273B9024419}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -21,6 +21,12 @@ AnalView::~AnalView()
 	m_pContext->m_pAnalView = NULL;
 }
 
+void AnalView::refresh()
+{
+	m_lastAnalyzedGeneration = -1;
+}
+
+
 void AnalView::initView()
 {
 	/* when this constructor is called, parent world view must be selected */
@@ -88,7 +94,7 @@ void AnalView::onUpdate(void)
 
 	drawBackGround();
 
-	UpdateAnalInfo();
+	updateAnalInfo();
 
 	glFlush();
 }
@@ -148,7 +154,8 @@ IView* AnalView::createAppropreateAnalView(WorldContext* pContext)
 	case ALGORITHM_NORMAL_NON_TORUS_MP:
 	default:
 		return new AnalViewAge(pContext);
-	case ALGORITHM_GROUP:
+	case ALGORITHM_GROUP_MP:
+	case ALGORITHM_GROUP_CUDA:
 		return new AnalViewGroup(pContext);
 	}
 }

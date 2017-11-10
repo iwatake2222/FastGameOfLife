@@ -9,6 +9,7 @@
 #include "LogicNormalNonTorus.h"
 #include "LogicNormalNonTorusMP.h"
 #include "LogicGroup.h"
+#include "LogicGroupCuda.h"
 
 LogicBase::LogicBase(int worldWidth, int worldHeight)
 {
@@ -130,6 +131,8 @@ void LogicBase::allocCells(int x0, int x1, int y0, int y1, int density, int prm1
 	if (density < 0) density = 0;
 	if (density > 100) density = 100;
 
+	m_info.generation++;
+
 	if (density != 0) {
 		int reverseDensity = 100 / density;
 		for (int y = y0; y < y1; y++) {
@@ -235,8 +238,10 @@ ILogic* LogicBase::generateLogic(int algorithm, int width, int height)
 		return new LogicNormalNonTorusMP(width, height);
 	//case ALGORITHM_NORMAL_NON_TORUS_CUDA:
 	//	return new LogicNormal(width, height);
-	case ALGORITHM_GROUP:
+	case ALGORITHM_GROUP_MP:
 		return new LogicGroup(width, height);
+	case ALGORITHM_GROUP_CUDA:
+		return new LogicGroupCuda(width, height);
 	default:
 		return new LogicNormal(width, height);
 	}

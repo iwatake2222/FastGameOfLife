@@ -12,7 +12,7 @@ AnalViewAge::~AnalViewAge()
 {
 }
 
-void AnalViewAge:: UpdateAnalInfo()
+void AnalViewAge:: updateAnalInfo()
 {
 	ANAL_INFORMATION newInfo = { 0 };
 	ILogic::WORLD_INFORMATION worldInfo;

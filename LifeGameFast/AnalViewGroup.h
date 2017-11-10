@@ -14,11 +14,9 @@ private:
 	} ANAL_INFORMATION;
 
 	ANAL_INFORMATION m_analInfo;
-
-	int m_lastAnalyzedGeneration;
-
+	
 private:
-	virtual void UpdateAnalInfo() override;
+	virtual void updateAnalInfo() override;
 	void analyseInformation(ANAL_INFORMATION *info);
 	void displayInformationGraph(ANAL_INFORMATION *info);
 	void displayInformationText(ANAL_INFORMATION* info);
