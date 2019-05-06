@@ -45,14 +45,10 @@ typedef struct {
 	int isMatrixUpdated;
 } ALGORITHM_CUDA_GROUP_PARAM;
 
-#ifdef DLL_EXPORT
-__declspec(dllexport) void cudaInitialize(ALGORITHM_CUDA_GROUP_PARAM *param, int width, int height);
-__declspec(dllexport) void cudaFinalize(ALGORITHM_CUDA_GROUP_PARAM *param);
-__declspec(dllexport) void cudaProcess(ALGORITHM_CUDA_GROUP_PARAM *param, int width, int height, int repeatNum);
-#else
-__declspec(dllimport) void cudaInitialize(ALGORITHM_CUDA_GROUP_PARAM *param, int width, int height);
-__declspec(dllimport) void cudaFinalize(ALGORITHM_CUDA_GROUP_PARAM *param);
-__declspec(dllimport) void cudaProcess(ALGORITHM_CUDA_GROUP_PARAM *param, int width, int height, int repeatNum);
-#endif
+
+void cudaInitialize(ALGORITHM_CUDA_GROUP_PARAM *param, int width, int height);
+void cudaFinalize(ALGORITHM_CUDA_GROUP_PARAM *param);
+void cudaProcess(ALGORITHM_CUDA_GROUP_PARAM *param, int width, int height, int repeatNum);
+
 
 }
