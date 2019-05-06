@@ -29,12 +29,12 @@ else()
 	message(FATAL_ERROR "[BUILD] Invalid target")
 endif()
 
-# find_package(CUDA REQUIRED)
-# if(CUDA_FOUND)
-# 	message("Cuda version: " ${CUDA_VERSION})
-# 	option(ENABLE_CUDA "ENABLE_CUDA" ON)
-# 	add_definitions(-DENABLE_CUDA)
-# endif()
+find_package(CUDA REQUIRED)
+if(CUDA_FOUND)
+	message("Cuda version: " ${CUDA_VERSION})
+	option(ENABLE_CUDA "ENABLE_CUDA" ON)
+	add_definitions(-DENABLE_CUDA)
+endif()
 
 # Include projects
 # set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/output)

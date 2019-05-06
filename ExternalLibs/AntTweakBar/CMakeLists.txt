@@ -28,6 +28,9 @@ if(WIN32)
 	set(SOURCES
 		${SOURCES}
 		src/TwEventWin.c
+		# src/TwDirect3D9.cpp
+		# src/TwDirect3D10.cpp
+		# src/TwDirect3D11.cpp
 	)
 else()
 set(SOURCES
@@ -36,9 +39,11 @@ set(SOURCES
 	)
 endif()
 
-add_definitions(-DTW_STATIC)
+# add_definitions(-DTW_STATIC)
 add_definitions(-DTW_NO_LIB_PRAGMA)
+add_definitions(-DTW_EXPORTS)
 
-add_library(AntTweakBar ${SOURCES})
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+add_library(AntTweakBar SHARED ${SOURCES})
 
 

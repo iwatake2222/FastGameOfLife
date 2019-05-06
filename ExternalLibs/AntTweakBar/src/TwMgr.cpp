@@ -1753,35 +1753,35 @@ static int TwCreateGraph(ETwGraphAPI _GraphAPI)
         break;
     case TW_DIRECT3D9:
         #ifdef ANT_WINDOWS
-            if( g_TwMgr->m_Device!=NULL )
-                g_TwMgr->m_Graph = new CTwGraphDirect3D9;
-            else
-            {
-                g_TwMgr->SetLastError(g_ErrBadDevice);
-                return 0;
-            }
+            //if( g_TwMgr->m_Device!=NULL )
+            //    g_TwMgr->m_Graph = new CTwGraphDirect3D9;
+            //else
+            //{
+            //    g_TwMgr->SetLastError(g_ErrBadDevice);
+            //    return 0;
+            //}
         #endif // ANT_WINDOWS
         break;
     case TW_DIRECT3D10:
         #ifdef ANT_WINDOWS
-            if( g_TwMgr->m_Device!=NULL )
-                g_TwMgr->m_Graph = new CTwGraphDirect3D10;
-            else
-            {
-                g_TwMgr->SetLastError(g_ErrBadDevice);
-                return 0;
-            }
+            //if( g_TwMgr->m_Device!=NULL )
+            //    g_TwMgr->m_Graph = new CTwGraphDirect3D10;
+            //else
+            //{
+            //    g_TwMgr->SetLastError(g_ErrBadDevice);
+            //    return 0;
+            //}
         #endif // ANT_WINDOWS
         break;
     case TW_DIRECT3D11:
         #ifdef ANT_WINDOWS
-            if( g_TwMgr->m_Device!=NULL )
-                g_TwMgr->m_Graph = new CTwGraphDirect3D11;
-            else
-            {
-                g_TwMgr->SetLastError(g_ErrBadDevice);
-                return 0;
-            }
+            //if( g_TwMgr->m_Device!=NULL )
+            //    g_TwMgr->m_Graph = new CTwGraphDirect3D11;
+            //else
+            //{
+            //    g_TwMgr->SetLastError(g_ErrBadDevice);
+            //    return 0;
+            //}
         #endif // ANT_WINDOWS
         break;
     }
