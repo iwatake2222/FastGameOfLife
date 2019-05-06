@@ -2,7 +2,7 @@
 #include <math.h>
 #include <future>
 #include <GL/glut.h>
-#include <gl/freeglut.h>
+#include <GL/freeglut.h>
 #include "WorldView.h"
 #include "WindowManager.h"
 #include "ControllerView.h"

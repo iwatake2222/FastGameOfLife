@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <future>
 #include <GL/glut.h>
-#include <gl/freeglut.h>
+#include <GL/freeglut.h>
 #include "ControllerView.h"
 #include "Values.h"
 

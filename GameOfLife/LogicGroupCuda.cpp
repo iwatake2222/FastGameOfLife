@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "LogicGroupCuda.h"
 #include "algorithmCudaGroup.h"
 #include "ControllerView.h"

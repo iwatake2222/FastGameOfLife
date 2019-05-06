@@ -1,7 +1,7 @@
 #include "Common.h"
 #include <stdio.h>
 #include <GL/glut.h>
-#include <gl/freeglut.h>
+#include <GL/freeglut.h>
 #include "AnalViewAge.h"
 #include "WindowManager.h"
 

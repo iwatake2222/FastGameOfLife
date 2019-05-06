@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <future>
 #include <GL/glut.h>
-#include <gl/freeglut.h>
+#include <GL/freeglut.h>
 #include "WindowManager.h"
 
 int WindowManager::m_drawIntervalMS;
@@ -89,8 +89,17 @@ void WindowManager::onResizeWrapper(int w, int h)
 }
 void WindowManager::onClickWrapper(int button, int state, int x, int y)
 {
-	int windowId = glutGetWindow();
-	getInstance()->m_viewMap[windowId]->onClick(button, state, x, y);
+	// it seems glutMouseWheelFunc is not supported in Linux
+#if !defined(WIN32)
+	if (state == GLUT_DOWN && (button == 3 || button == 4)) {
+		onWheelWrapper(0, button == 3 ? 1 : -1, x, y);
+	} else
+#endif
+	{
+		int windowId = glutGetWindow();
+		getInstance()->m_viewMap[windowId]->onClick(button, state, x, y);
+	}
+
 }
 void WindowManager::onDragWrapper(int x, int y)
 {

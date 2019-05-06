@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <GL/glut.h>
-#include <gl/freeglut.h>
+#include <GL/freeglut.h>
 #include "AnalView.h"
 #include "WindowManager.h"
 #include "Values.h"
