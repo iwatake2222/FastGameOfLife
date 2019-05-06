@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include "WorldContext.h"
 #include "WorldView.h"
 #include "LogicBase.h"

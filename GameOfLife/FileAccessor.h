@@ -12,7 +12,7 @@ public:
 	~FileAccessor();
 	static void skipComment();
 	static void skipNewLine();
-	static void FileAccessor::getFilepath(char *path);
+	static void getFilepath(char *path);
 	static void stop();
 	static bool startReadingPattern(const char *path, int *width, int *height);
 	static bool readPattern(int *x, int *y, int *prm);

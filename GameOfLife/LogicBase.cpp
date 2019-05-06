@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "Values.h"
 #include "ControllerView.h"
 #include "LogicBase.h"

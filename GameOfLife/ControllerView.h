@@ -32,10 +32,10 @@ private:
 	static void onUpdate(void);
 	static void onResize(int w, int h);
 
-	static int ControllerView::MouseButtonCB(int glutButton, int glutState, int mouseX, int mouseY);
-	static int ControllerView::MouseMotionCB(int mouseX, int mouseY);
-	static int ControllerView::KeyboardCB(unsigned char glutKey, int mouseX, int mouseY);
-	static int ControllerView::SpecialKeyCB(int glutKey, int mouseX, int mouseY);
+	static int MouseButtonCB(int glutButton, int glutState, int mouseX, int mouseY);
+	static int MouseMotionCB(int mouseX, int mouseY);
+	static int KeyboardCB(unsigned char glutKey, int mouseX, int mouseY);
+	static int SpecialKeyCB(int glutKey, int mouseX, int mouseY);
 	
 	static void TW_CALL onClickBtnStartStop(void * clientData);
 	static void TW_CALL onClickBtnStep(void * clientData);

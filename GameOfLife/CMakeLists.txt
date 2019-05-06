@@ -21,6 +21,7 @@ set(SOURCES
 )
 
 set(HEADERS
+	Common.h
 	AnalView.h
 	AnalViewAge.h
 	AnalViewGroup.h

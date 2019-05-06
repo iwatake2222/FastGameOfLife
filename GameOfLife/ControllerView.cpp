@@ -1,3 +1,4 @@
+#include "Common.h"
 #include <stdio.h>
 #include <future>
 #include <GL/glut.h>
@@ -213,7 +214,7 @@ void ControllerView::initUI()
 	TwDefine(" Controller position = '0 0' movable=false resizable=false ");
 	int colWidth = WINDOW_WIDTH / 2;
 	TwSetParam(m_pBar, NULL, "valueswidth", TW_PARAM_INT32, 1, &colWidth);
-	sprintf_s(str, 64, "%d %d", WINDOW_WIDTH, WINDOW_HEIGHT);
+	sprintf_s(str, "%d %d", WINDOW_WIDTH, WINDOW_HEIGHT);
 	TwSetParam(m_pBar, NULL, "size", TW_PARAM_CSTRING, 1, str);
 	TwDefine(" GLOBAL fontsize=3 fontstyle=fixed ");
 

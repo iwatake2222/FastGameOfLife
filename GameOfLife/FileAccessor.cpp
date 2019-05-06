@@ -1,4 +1,5 @@
-﻿#include <stdio.h>
+﻿#include "Common.h"
+#include <stdio.h>
 #include "FileAccessor.h"
 
 
@@ -21,7 +22,7 @@ void FileAccessor::skipNewLine()
 	/* treating new line code (\r, \n, \r\n, \n\r) */
 	char readChar;
 	do {
-		readChar = fgetwc(m_fp);
+		readChar = fgetc(m_fp);
 	} while (readChar == '\r' || readChar == '\n');
 	if (readChar != EOF) fseek(m_fp, -1L, SEEK_CUR);
 	// current position is the top of new line
@@ -30,13 +31,13 @@ void FileAccessor::skipNewLine()
 void FileAccessor::skipComment()
 {
 	char readChar;
-	readChar = fgetwc(m_fp);
+	readChar = fgetc(m_fp);
 	while (readChar == '#' || readChar == '!') {
 		do {
-			readChar = fgetwc(m_fp);
+			readChar = fgetc(m_fp);
 		} while (readChar != '\r' && readChar != '\n');
 		skipNewLine();
-		readChar = fgetwc(m_fp);
+		readChar = fgetc(m_fp);
 	}
 
 	fseek(m_fp, -1L, SEEK_CUR);
@@ -62,7 +63,7 @@ bool FileAccessor::startReadingPattern(const char *path, int *width, int *height
 	int maxHeight = 0;
 	int x = 0;
 	try {
-		fopen_s(&m_fp, path, "r");
+		m_fp = fopen(path, "r");
 		skipComment();
 		char readChar;
 		while ((readChar = fgetc(m_fp)) != EOF) {
@@ -102,7 +103,7 @@ bool FileAccessor::readPattern(int *offsetX, int *offsetY, int *prm)
 				skipNewLine();
 				m_patternOffsetY++;
 				m_patternOffsetX = 0;
-				if ((readChar = fgetwc(m_fp)) == EOF) return false;
+				if ((readChar = fgetc(m_fp)) == EOF) return false;
 			}
 			*prm = (readChar == 'x') || (readChar == 'X') || (readChar == '*') || (readChar == 'O');
 			*offsetX = m_patternOffsetX;
@@ -121,7 +122,7 @@ bool FileAccessor::startWritingPattern(const char *path)
 {
 	bool ret = false;
 	try {
-		fopen_s(&m_fp, path, "w");
+		m_fp = fopen(path, "w");
 		ret = true;
 	} catch (...) {
 		printf("Error while opening %s\n", path);
@@ -136,12 +137,12 @@ bool FileAccessor::writePattern(int cell, bool isNewline)
 	bool ret = false;
 	try {
 		if (isNewline) {
-			fprintf_s(m_fp, "\n");
+			fprintf(m_fp, "\n");
 		}
 		if (cell != 0) {
-			fprintf_s(m_fp, "X");
+			fprintf(m_fp, "X");
 		} else {
-			fprintf_s(m_fp, ".");
+			fprintf(m_fp, ".");
 		}
 		ret = true;
 	} catch (...) {
