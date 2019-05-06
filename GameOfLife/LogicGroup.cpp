@@ -176,7 +176,7 @@ void LogicGroup::processWithoutBorderCheck(int x0, int x1, int y0, int y1)
 	}
 }
 
-inline void LogicGroup::updateCell(int x, int yLine, int cnt, int group)
+void LogicGroup::updateCell(int x, int yLine, int cnt, int group)
 {
 	/* Note: yLine is index of array (yLine = y*width) */
 	if (m_matSrc[yLine + x].age == 0) {

@@ -1,10 +1,6 @@
 ﻿#include <stdio.h>
 #include "FileAccessor.h"
-#include <windows.h>
-#include <Commdlg.h>
-#include <tchar.h>
-#pragma comment(lib, "Comdlg32.lib")
-#pragma comment(lib, "User32.lib")
+
 
 FILE * FileAccessor::m_fp;
 int FileAccessor::m_patternOffsetX, FileAccessor::m_patternOffsetY;
@@ -23,22 +19,22 @@ FileAccessor::~FileAccessor()
 void FileAccessor::skipNewLine()
 {
 	/* treating new line code (\r, \n, \r\n, \n\r) */
-	wint_t readChar;
+	char readChar;
 	do {
 		readChar = fgetwc(m_fp);
-	} while (readChar == L'\r' || readChar == L'\n');
-	if (readChar != WEOF) fseek(m_fp, -1L, SEEK_CUR);
+	} while (readChar == '\r' || readChar == '\n');
+	if (readChar != EOF) fseek(m_fp, -1L, SEEK_CUR);
 	// current position is the top of new line
 }
 
 void FileAccessor::skipComment()
 {
-	wint_t readChar;
+	char readChar;
 	readChar = fgetwc(m_fp);
-	while (readChar == L'#' || readChar == L'!') {
+	while (readChar == '#' || readChar == '!') {
 		do {
 			readChar = fgetwc(m_fp);
-		} while (readChar != L'\r' && readChar != L'\n');
+		} while (readChar != '\r' && readChar != '\n');
 		skipNewLine();
 		readChar = fgetwc(m_fp);
 	}
@@ -47,21 +43,11 @@ void FileAccessor::skipComment()
 	// current position is the top of non-comment line
 }
 
-bool FileAccessor::getFilepath(char *path, const char *filter)
+void FileAccessor::getFilepath(char *path)
 {
-	OPENFILENAME ofn;
-	WCHAR name[MAX_PATH];
-	memset(path, '\0', sizeof(path));
-	memset(name, '\0', sizeof(name));
-
-	memset(&ofn, 0, sizeof(OPENFILENAME));
-	ofn.lStructSize = sizeof(OPENFILENAME);
-	ofn.lpstrFilter = filter;
-	ofn.lpstrFile = path;
-	ofn.nMaxFile = MAX_PATH;
-	//ofn.lpstrFileTitle = name;	// todo
-	ofn.nMaxFileTitle = MAX_PATH;
-	return GetOpenFileName(&ofn);
+	printf("Please Input File name\n");
+	scanf("%s", path);
+	return;
 }
 
 void FileAccessor::stop()
@@ -70,20 +56,19 @@ void FileAccessor::stop()
 }
 
 /* Open FILE, get size of the pattern, then move to file pointer to the top of valid line */
-bool FileAccessor::startReadingPattern(char *path, int *width, int *height)
+bool FileAccessor::startReadingPattern(const char *path, int *width, int *height)
 {
 	int maxWidth = 0;
 	int maxHeight = 0;
 	int x = 0;
 	try {
-		//_wfopen_s(&m_fp, path, L"r");	// tdoo
-		//setlocale(LC_ALL, "Japanese");
+		fopen_s(&m_fp, path, "r");
 		skipComment();
-		wint_t readChar;
-		while ((readChar = fgetwc(m_fp)) != WEOF) {
+		char readChar;
+		while ((readChar = fgetc(m_fp)) != EOF) {
 			//putchar(readChar);
 			x++;
-			if (readChar == L'\r' || readChar == L'\n') {
+			if (readChar == '\r' || readChar == '\n') {
 				skipNewLine();
 				if (maxWidth < x) maxWidth = x;
 				x = 0;
@@ -110,16 +95,16 @@ bool FileAccessor::startReadingPattern(char *path, int *width, int *height)
 
 bool FileAccessor::readPattern(int *offsetX, int *offsetY, int *prm)
 {
-	wint_t readChar;
+	char readChar;
 	try {
-		if ((readChar = fgetwc(m_fp)) != WEOF) {
-			if (readChar == L'\r' || readChar == L'\n') {
+		if ((readChar = fgetc(m_fp)) != EOF) {
+			if (readChar == '\r' || readChar == '\n') {
 				skipNewLine();
 				m_patternOffsetY++;
 				m_patternOffsetX = 0;
-				if ((readChar = fgetwc(m_fp)) == WEOF) return false;
+				if ((readChar = fgetwc(m_fp)) == EOF) return false;
 			}
-			*prm = (readChar == L'x') || (readChar == L'X') || (readChar == L'*') || (readChar == L'O');
+			*prm = (readChar == 'x') || (readChar == 'X') || (readChar == '*') || (readChar == 'O');
 			*offsetX = m_patternOffsetX;
 			*offsetY = m_patternOffsetY;
 			m_patternOffsetX++;
@@ -136,7 +121,7 @@ bool FileAccessor::startWritingPattern(const char *path)
 {
 	bool ret = false;
 	try {
-		//_wfopen_s(&m_fp, path, L"w");	// todo
+		fopen_s(&m_fp, path, "w");
 		ret = true;
 	} catch (...) {
 		printf("Error while opening %s\n", path);
@@ -151,12 +136,12 @@ bool FileAccessor::writePattern(int cell, bool isNewline)
 	bool ret = false;
 	try {
 		if (isNewline) {
-			fwprintf_s(m_fp, L"\n");
+			fprintf_s(m_fp, "\n");
 		}
 		if (cell != 0) {
-			fwprintf_s(m_fp, L"X");
+			fprintf_s(m_fp, "X");
 		} else {
-			fwprintf_s(m_fp, L".");
+			fprintf_s(m_fp, ".");
 		}
 		ret = true;
 	} catch (...) {

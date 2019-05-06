@@ -12,9 +12,9 @@ public:
 	~FileAccessor();
 	static void skipComment();
 	static void skipNewLine();
-	static bool getFilepath(char *path, const char *filter);
+	static void FileAccessor::getFilepath(char *path);
 	static void stop();
-	static bool startReadingPattern(char *path, int *width, int *height);
+	static bool startReadingPattern(const char *path, int *width, int *height);
 	static bool readPattern(int *x, int *y, int *prm);
 	static bool startWritingPattern(const char *path);
 	static bool writePattern(int cell, bool isNewline);

@@ -55,63 +55,56 @@ WorldContext::~WorldContext()
 
 WorldContext* WorldContext::generateFromFile()
 {
-	// todo
-	//char path[MAX_PATH];
-	////if (FileAccessor::getFilepath(path, TEXT("(*.txt, *.csv)\0*.txt;*.csv\0"))) {
-	//if (FileAccessor::getFilepath(path, TEXT("(*.txt, *.csv, *.*)\0*.txt;*.csv;*.*\0"))) {
-	//	return generateFromFile(path, 32, 32);
-	//}
-	return NULL;
+	char path[255];
+	FileAccessor::getFilepath(path);
+	return generateFromFile(path, 32, 32);
 }
 
 WorldContext* WorldContext::generateFromFile(const char* filename, int width, int height)
 {
-	
 	WorldContext* worldContext = NULL;
 	
-	// todo
-	//int patternWidth, patternHeight;	// pattern size
-	//int patternOffsetX, patternOffsetY;	// position in pattern
-	//int x, y, prm;
+	int patternWidth, patternHeight;	// pattern size
+	int patternOffsetX, patternOffsetY;	// position in pattern
+	int x, y, prm;
 
-	//if (FileAccessor::startReadingPattern(filename, &patternWidth, &patternHeight)) {
-	//	width = fmax(width, patternWidth);
-	//	height = fmax(height, patternHeight);
-	//	printf("Create world(%d x %d)\n", width, height);
-	//	worldContext = new WorldContext(width, height);
-	//	width = worldContext->WORLD_WIDTH;
-	//	height = worldContext->WORLD_HEIGHT;
-	//	int prm;
-	//	while (FileAccessor::readPattern(&patternOffsetX, &patternOffsetY, &prm)) {
-	//		int x = width / 2 + patternOffsetX - patternWidth / 2;
-	//		int y = height / 2 - (patternOffsetY - patternHeight / 2) - 1;
-	//		if (prm != 0) {
-	//			worldContext->m_pLogic->setCell(x, y);
-	//		} else {
-	//			worldContext->m_pLogic->clearCell(x, y);
-	//		}
-	//	}
-	//	FileAccessor::stop();
-	//}
+	if (FileAccessor::startReadingPattern(filename, &patternWidth, &patternHeight)) {
+		width = fmax(width, patternWidth);
+		height = fmax(height, patternHeight);
+		printf("Create world(%d x %d)\n", width, height);
+		worldContext = new WorldContext(width, height);
+		width = worldContext->WORLD_WIDTH;
+		height = worldContext->WORLD_HEIGHT;
+		int prm;
+		while (FileAccessor::readPattern(&patternOffsetX, &patternOffsetY, &prm)) {
+			int x = width / 2 + patternOffsetX - patternWidth / 2;
+			int y = height / 2 - (patternOffsetY - patternHeight / 2) - 1;
+			if (prm != 0) {
+				worldContext->m_pLogic->setCell(x, y);
+			} else {
+				worldContext->m_pLogic->clearCell(x, y);
+			}
+		}
+		FileAccessor::stop();
+	}
 	return worldContext;
 }
 
 void WorldContext::saveToFile(WorldContext* context)
 {
-	// todo
-	//WCHAR path[MAX_PATH];
-	//if (FileAccessor::getFilepath(path, TEXT("(*.txt, *.*)\0*.txt;*.*\0")) && FileAccessor::startWritingPattern(path)) {
-	//	bool isNewline = false;
-	//	int *mat = context->m_pLogic->getDisplayMat();
-	//	for (int y = context->WORLD_HEIGHT - 1; y >= 0; y--) {
-	//		int yIndex = context->WORLD_WIDTH * y;
-	//		for (int x = 0; x < context->WORLD_WIDTH; x++) {
-	//			int prm = mat[yIndex + x];
-	//			FileAccessor::writePattern(prm, isNewline);
-	//			isNewline = false;
-	//		}
-	//		isNewline = true;
-	//	}
-	//	FileAccessor::stop();
-	//}
+	char path[255];
+	FileAccessor::getFilepath(path);
+	FileAccessor::startWritingPattern(path);
+	bool isNewline = false;
+	int *mat = context->m_pLogic->getDisplayMat();
+	for (int y = context->WORLD_HEIGHT - 1; y >= 0; y--) {
+		int yIndex = context->WORLD_WIDTH * y;
+		for (int x = 0; x < context->WORLD_WIDTH; x++) {
+			int prm = mat[yIndex + x];
+			FileAccessor::writePattern(prm, isNewline);
+			isNewline = false;
+		}
+		isNewline = true;
+	}
+	FileAccessor::stop();
 }

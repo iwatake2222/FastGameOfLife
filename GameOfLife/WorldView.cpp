@@ -405,54 +405,52 @@ void WorldView::onKeyboard(unsigned char key, int x, int y)
 		break;
 	case 'l':
 	{
-		// todo
 		/* load pettern file */
-		//WCHAR path[MAX_PATH];
-		//int patternWidth, patternHeight;	// pattern size
-		//int patternOffsetX, patternOffsetY;	// position in pattern
-		//int prm;
-		//if (FileAccessor::getFilepath(path, TEXT("(*.txt, *.*)\0*.txt;*.*\0"))) {
-		//	if (FileAccessor::startReadingPattern(path, &patternWidth, &patternHeight)) {
-		//		printf("Pattern size(%d x %d)\n", patternWidth, patternHeight);
-		//		while (FileAccessor::readPattern(&patternOffsetX, &patternOffsetY, &prm)) {
-		//			int x = (m_worldVisibleX0 + m_worldVisibleX1) / 2 + patternOffsetX - patternWidth/2;
-		//			int y = (m_worldVisibleY0 + m_worldVisibleY1) / 2 - (patternOffsetY - patternHeight / 2) - 1;
-		//			if (prm != 0) {
-		//				m_pContext->m_pLogic->setCell(x, y, ControllerView::getInstance()->m_prm1);
-		//			} else {
-		//				m_pContext->m_pLogic->clearCell(x, y);
-		//			}
-		//		}
-		//		FileAccessor::stop();
-		//	}
-		//}
-		//((AnalView*)m_pContext->m_pAnalView)->refresh();	// todo: without cast
+		char path[255];
+		int patternWidth, patternHeight;	// pattern size
+		int patternOffsetX, patternOffsetY;	// position in pattern
+		int prm;
+		FileAccessor::getFilepath(path);
+		if (FileAccessor::startReadingPattern(path, &patternWidth, &patternHeight)) {
+			printf("Pattern size(%d x %d)\n", patternWidth, patternHeight);
+			while (FileAccessor::readPattern(&patternOffsetX, &patternOffsetY, &prm)) {
+				int x = (m_worldVisibleX0 + m_worldVisibleX1) / 2 + patternOffsetX - patternWidth/2;
+				int y = (m_worldVisibleY0 + m_worldVisibleY1) / 2 - (patternOffsetY - patternHeight / 2) - 1;
+				if (prm != 0) {
+					m_pContext->m_pLogic->setCell(x, y, ControllerView::getInstance()->m_prm1);
+				} else {
+					m_pContext->m_pLogic->clearCell(x, y);
+				}
+			}
+			FileAccessor::stop();
+		}
+		((AnalView*)m_pContext->m_pAnalView)->refresh();	// todo: without cast
 		break;
 	}
 	case 's':
 	{
-		// todo
 		/* save pettern file */
-		//WCHAR path[MAX_PATH];
-		//if (FileAccessor::getFilepath(path, TEXT("(*.txt, *.*)\0*.txt;*.*\0")) && FileAccessor::startWritingPattern(path)) {
-		//	int x0 = m_worldVisibleX0 > 0 ? m_worldVisibleX0 : 0;
-		//	int x1 = m_worldVisibleX1 < WORLD_WIDTH ? m_worldVisibleX1 : WORLD_WIDTH - 1;
-		//	int y0 = m_worldVisibleY0 > 0 ? m_worldVisibleY0 : 0;
-		//	int y1 = m_worldVisibleY1 < WORLD_HEIGHT ? m_worldVisibleY1 : WORLD_HEIGHT - 1;
+		char path[255];
+		FileAccessor::getFilepath(path);
+		if (FileAccessor::startWritingPattern(path)) {
+			int x0 = m_worldVisibleX0 > 0 ? m_worldVisibleX0 : 0;
+			int x1 = m_worldVisibleX1 < WORLD_WIDTH ? m_worldVisibleX1 : WORLD_WIDTH - 1;
+			int y0 = m_worldVisibleY0 > 0 ? m_worldVisibleY0 : 0;
+			int y1 = m_worldVisibleY1 < WORLD_HEIGHT ? m_worldVisibleY1 : WORLD_HEIGHT - 1;
 
-		//	bool isNewline = false;
-		//	int *mat = m_pContext->m_pLogic->getDisplayMat();
-		//	for (int y = y1; y >= y0; y--) {
-		//		int yIndex = WORLD_WIDTH * y;
-		//		for (int x = x0; x <= x1; x++) {
-		//			int prm = mat[yIndex + x];
-		//			FileAccessor::writePattern(prm, isNewline);
-		//			isNewline = false;
-		//		}
-		//		isNewline = true;
-		//	}
-		//	FileAccessor::stop();
-		//}
+			bool isNewline = false;
+			int *mat = m_pContext->m_pLogic->getDisplayMat();
+			for (int y = y1; y >= y0; y--) {
+				int yIndex = WORLD_WIDTH * y;
+				for (int x = x0; x <= x1; x++) {
+					int prm = mat[yIndex + x];
+					FileAccessor::writePattern(prm, isNewline);
+					isNewline = false;
+				}
+				isNewline = true;
+			}
+			FileAccessor::stop();
+		}
 		break;
 	}
 	default:
