@@ -1,3 +1,5 @@
+This software is released under the MIT License, see LICENSE.txt.
+
 # Fast Conway's Game of Life
  - This is a CPP project for Conway's Game of Life.
  - I use OpenGL, OpenMP and CUDA for high speed performance.

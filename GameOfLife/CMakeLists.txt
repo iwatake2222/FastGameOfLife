@@ -69,16 +69,16 @@ if(ENABLE_CUDA)
 	target_link_libraries(GameOfLife AlgorithmCudaGroup)
 endif()
 
-target_include_directories(GameOfLife PUBLIC
-	${PROJECT_SOURCE_DIR}/freeglut/include
-	${PROJECT_SOURCE_DIR}/AntTweakBar/include
-	
-)
+# For FreeGlut
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+add_subdirectory(${PROJECT_SOURCE_DIR}/ExternalLibs/freeglut freeglut)
+target_include_directories(GameOfLife PUBLIC ${PROJECT_SOURCE_DIR}/ExternalLibs/freeglut/include)
+target_link_libraries(GameOfLife freeglut)
 
-target_link_libraries(GameOfLife
-	${PROJECT_SOURCE_DIR}/freeglut/lib/x64/freeglut.lib
-	${PROJECT_SOURCE_DIR}/AntTweakBar/lib/AntTweakBar64.lib
-)
+# For AntTweakBar
+add_subdirectory(${PROJECT_SOURCE_DIR}/ExternalLibs/AntTweakBar AntTweakBar)
+target_include_directories(GameOfLife PUBLIC ${PROJECT_SOURCE_DIR}/ExternalLibs/AntTweakBar/include)
+target_link_libraries(GameOfLife AntTweakBar)
 
 # For OpenMP
 find_package(OpenMP REQUIRED)
@@ -86,9 +86,4 @@ if(OpenMP_FOUND)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
-
-# Copy resouce
-file(COPY ${PROJECT_SOURCE_DIR}/freeglut/bin/x64/freeglut.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
-file(COPY ${PROJECT_SOURCE_DIR}/AntTweakBar/lib/AntTweakBar64.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
-
 
