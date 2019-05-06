@@ -241,7 +241,7 @@ ILogic* LogicBase::generateLogic(int algorithm, int width, int height)
 		return new LogicGroup(width, height);
 #ifdef ENABLE_CUDA
 	case ALGORITHM_NORMAL_CUDA:
-		return new LogicNormal(width, height);
+		return new LogicNormalCuda(width, height);
 	case ALGORITHM_GROUP_CUDA:
 		return new LogicGroupCuda(width, height);
 #endif

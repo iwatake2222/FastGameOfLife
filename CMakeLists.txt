@@ -1,33 +1,18 @@
 cmake_minimum_required(VERSION 2.8)
 project(GameOfLife)
 
-# Switch build target
-set(BUILD_TARGET PC CACHE STRING "Build target?")
-
-# Common build settings
-include(cmakes/common.cmake)
-
-# Build settings for each target
-if(${BUILD_TARGET} STREQUAL PC)
-	if(WIN32)
-		message("[BUILD] PC Windows")
-		include(cmakes/PC_WIN.cmake)
-	else()
-		message("[BUILD] PC Linux")
-		include(cmakes/PC_LINUX.cmake)
-	endif()
-elseif(${BUILD_TARGET} STREQUAL RASPI_NATIVE)
-	message("[BUILD] Raspberry Pi Native")
-	include(cmakes/RASPI_NATIVE.cmake)
-elseif(${BUILD_TARGET} STREQUAL RASPI_CROSS)
-	message("[BUILD] Raspberry Pi Cross")
-	include(cmakes/RASPI_CROSS.cmake)
-elseif(${BUILD_TARGET} STREQUAL JETSON)
-	message("[BUILD] Jetson Nano Native")
-	include(cmakes/JETSON_NATIVE.cmake)
+if(WIN32)
+	message("[BUILD] PC Windows")
 else()
-	message(FATAL_ERROR "[BUILD] Invalid target")
+	message("[BUILD] Linus")
+	set(CMAKE_C_FLAGS "-Wall")
+	set(CMAKE_C_FLAGS_DEBUG "-g -O0")
+	set(CMAKE_C_FLAGS_RELEASE "-O3 -s")
+	set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11")
+	set(CMAKE_CXX_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
+	set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
 endif()
+
 
 find_package(CUDA REQUIRED)
 if(CUDA_FOUND)
@@ -37,6 +22,5 @@ if(CUDA_FOUND)
 endif()
 
 # Include projects
-# set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/output)
 add_subdirectory(${PROJECT_SOURCE_DIR}/GameOfLife GameOfLife)
 

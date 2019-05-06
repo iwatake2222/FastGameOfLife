@@ -61,11 +61,11 @@ add_executable(GameOfLife
 
 # Add sub project
 if(ENABLE_CUDA)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/AlgorithmCudaNormal AlgorithmCudaNormal)
-	target_include_directories(GameOfLife PUBLIC ${PROJECT_SOURCE_DIR}/AlgorithmCudaNormal)
+	add_subdirectory(AlgorithmCudaNormal)
+	target_include_directories(GameOfLife PUBLIC AlgorithmCudaNormal)
 	target_link_libraries(GameOfLife AlgorithmCudaNormal)
-	add_subdirectory(${PROJECT_SOURCE_DIR}/AlgorithmCudaGroup AlgorithmCudaGroup)
-	target_include_directories(GameOfLife PUBLIC ${PROJECT_SOURCE_DIR}/AlgorithmCudaGroup)
+	add_subdirectory(AlgorithmCudaGroup)
+	target_include_directories(GameOfLife PUBLIC AlgorithmCudaGroup)
 	target_link_libraries(GameOfLife AlgorithmCudaGroup)
 endif()
 
