@@ -71,9 +71,10 @@ endif()
 
 # For FreeGlut
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+add_definitions(-DFREEGLUT_STATIC)
 add_subdirectory(${PROJECT_SOURCE_DIR}/ExternalLibs/freeglut freeglut)
 target_include_directories(GameOfLife PUBLIC ${PROJECT_SOURCE_DIR}/ExternalLibs/freeglut/include)
-target_link_libraries(GameOfLife freeglut)
+target_link_libraries(GameOfLife freeglut_static)
 
 # For AntTweakBar
 add_subdirectory(${PROJECT_SOURCE_DIR}/ExternalLibs/AntTweakBar AntTweakBar)

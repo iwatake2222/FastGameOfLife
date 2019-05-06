@@ -40,10 +40,8 @@ set(SOURCES
 endif()
 
 # add_definitions(-DTW_STATIC)
-add_definitions(-DTW_NO_LIB_PRAGMA)
-add_definitions(-DTW_EXPORTS)
-
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-add_library(AntTweakBar SHARED ${SOURCES})
+# add_definitions(-DTW_NO_LIB_PRAGMA)
+# add_definitions(-DTW_EXPORTS)
+add_library(AntTweakBar STATIC ${SOURCES})
 
 

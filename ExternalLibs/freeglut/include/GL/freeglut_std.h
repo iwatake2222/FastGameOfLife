@@ -48,7 +48,7 @@
  */
 #   ifndef FREEGLUT_LIB_PRAGMAS
 #       if ( defined(_MSC_VER) || defined(__WATCOMC__) ) && !defined(_WIN32_WCE)
-#           define FREEGLUT_LIB_PRAGMAS 1
+#           define FREEGLUT_LIB_PRAGMAS 0   // modified
 #       else
 #           define FREEGLUT_LIB_PRAGMAS 0
 #       endif
