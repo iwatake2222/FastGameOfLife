@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.10)
 
 find_package(CUDA REQUIRED)
 
-CUDA_ADD_LIBRARY(AlgorithmCudaNormal STATIC
+set(SOURCES
 	algorithmCudaNormal.h
 	algorithmCudaNormalInternal.h
 	kernel.cu
@@ -14,3 +14,12 @@ CUDA_ADD_LIBRARY(AlgorithmCudaNormal STATIC
 	kernel_3_stream.cu
 )
 
+CUDA_ADD_LIBRARY(AlgorithmCudaNormal STATIC
+	${SOURCES}
+)
+
+CUDA_ADD_EXECUTABLE(AlgorithmCudaNormalTest
+	${SOURCES}
+	main.cpp
+	referenceCode.cpp
+)

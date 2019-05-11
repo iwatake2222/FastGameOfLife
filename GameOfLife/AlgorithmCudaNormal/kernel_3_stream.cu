@@ -127,6 +127,7 @@ void process_3_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 		p[memWidth * (memHeight - 1) + memWidth - 1] = p[memWidth * (1) + 1];
 
 		/* copy border line data at first to simplyfy logic of each stream (no need to consider border line) */
+#if !defined(USE_ZEROCOPY_MEMORY)
 		for (int i = 0; i < NUM_STREAM; i++) {
 			int offsetFirstLine = (i * heightStream) * memWidth;
 			CHECK(cudaMemcpy(param->devMatSrc + offsetFirstLine, param->hostMatSrc + offsetFirstLine, memWidth * sizeof(int), cudaMemcpyHostToDevice));
@@ -137,6 +138,7 @@ void process_3_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 				CHECK(cudaMemcpy(param->devMatSrc + (memHeight - 1) * memWidth, param->hostMatSrc + (memHeight - 1) * memWidth, memWidth * sizeof(int), cudaMemcpyHostToDevice));
 			}
 		}
+#endif
 	} else {
 		/* create alias area in device memory */
 		dim3 blockW(BLOCK_SIZE_W);
@@ -155,10 +157,14 @@ void process_3_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 		int copyLine = heightStream;
 		if (offsetY + heightStream > memHeight) copyLine = memHeight - offsetY;
 		if (param->isMatrixUpdated) {
+#if !defined(USE_ZEROCOPY_MEMORY)
 			CHECK(cudaMemcpyAsync(param->devMatSrc + offsetY * memWidth, param->hostMatSrc + offsetY * memWidth, memWidth * copyLine * sizeof(int), cudaMemcpyHostToDevice, *pStream));
+#endif
 		}
 		loop_3_stream << < grid, block, 0, *pStream >> > (param->devMatDst, param->devMatSrc, width, height, memWidth, memHeight, offsetY);
+#if !defined(USE_ZEROCOPY_MEMORY)
 		CHECK(cudaMemcpyAsync(param->hostMatDst + offsetY * memWidth, param->devMatDst + offsetY * memWidth, memWidth * copyLine * sizeof(int), cudaMemcpyDeviceToHost, *pStream));
+#endif
 	}
 
 	for (int i = 0; i < NUM_STREAM; i++) {
@@ -195,7 +201,9 @@ void process_3_repeat(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height,
 
 	/* Copy matrix data from host to device */
 	if (param->isMatrixUpdated) {
+#if !defined(USE_ZEROCOPY_MEMORY)
 		CHECK(cudaMemcpy(param->devMatSrc, param->hostMatSrc, memWidth * memHeight * sizeof(int), cudaMemcpyHostToDevice));
+#endif
 	}
 
 	for (int i = 0; i < repeatNum; i++) {
@@ -214,7 +222,9 @@ void process_3_repeat(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height,
 		swapMat(param);
 	}
 	swapMat(param);
+#if !defined(USE_ZEROCOPY_MEMORY)
 	CHECK(cudaMemcpy(param->hostMatDst + (memWidth * 1) + MEMORY_MARGIN, param->devMatDst + (memWidth * 1) + MEMORY_MARGIN, memWidth * height * sizeof(int), cudaMemcpyDeviceToHost));
+#endif
 	swapMat(param);
 	param->isMatrixUpdated = 0;
 

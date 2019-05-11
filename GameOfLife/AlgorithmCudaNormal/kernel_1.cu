@@ -98,7 +98,9 @@ void process_1(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 	p[memWidth * (memHeight - 1) + 0]               = p[memWidth * (1)                + memWidth - 2];
 	p[memWidth * (memHeight - 1) + memWidth - 1] = p[memWidth * (1)                + 1];
 
+#if !defined(USE_ZEROCOPY_MEMORY)
 	CHECK(cudaMemcpy(param->devMatSrc, param->hostMatSrc, memWidth * memHeight * sizeof(int), cudaMemcpyHostToDevice));
+#endif
 #else
 	/* Copy world area from host to device, then create alias area in device memory */
 	/* [ (0, 0) - (width-1), (height-1) ] -> [ (1, 1) - (memWidth-2), (memHeight-2) ] */
@@ -127,9 +129,10 @@ void process_1(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 	/*** operate logic without border check ***/
 	loop_1_withoutBorderCheck << < grid, block >> > (param->devMatDst, param->devMatSrc, width, height, memWidth, memHeight);
 	CHECK(cudaDeviceSynchronize());
-	
-	CHECK(cudaMemcpy(param->hostMatDst + (memWidth * 1) + MEMORY_MARGIN, param->devMatDst + (memWidth * 1) + MEMORY_MARGIN, memWidth * height * sizeof(int), cudaMemcpyDeviceToHost));
 
+#if !defined(USE_ZEROCOPY_MEMORY)
+	CHECK(cudaMemcpy(param->hostMatDst + (memWidth * 1) + MEMORY_MARGIN, param->devMatDst + (memWidth * 1) + MEMORY_MARGIN, memWidth * height * sizeof(int), cudaMemcpyDeviceToHost));
+#endif
 	swapMat(param);
 	// hostMatSrc is ready to be displayed
 }

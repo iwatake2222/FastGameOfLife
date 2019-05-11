@@ -66,12 +66,16 @@ void process_0(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 	dim3 block(BLOCK_SIZE_W, BLOCK_SIZE_H);
 	dim3 grid(width / BLOCK_SIZE_W, height / BLOCK_SIZE_H);
 
+#if !defined(USE_ZEROCOPY_MEMORY)
 	CHECK(cudaMemcpy(param->devMatSrc, param->hostMatSrc, width * height * sizeof(int), cudaMemcpyHostToDevice));
+#endif
 
 	loop_0 <<< grid, block >>> (param->devMatDst, param->devMatSrc, width, height);
 	CHECK(cudaDeviceSynchronize());
 
+#if !defined(USE_ZEROCOPY_MEMORY)
 	CHECK(cudaMemcpy(param->hostMatDst, param->devMatDst, width * height * sizeof(int), cudaMemcpyDeviceToHost));
+#endif
 
 	swapMat(param);
 

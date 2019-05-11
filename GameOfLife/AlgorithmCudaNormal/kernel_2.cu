@@ -111,14 +111,17 @@ void process_2(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 	p[memWidth * (memHeight - 1) + 0] = p[memWidth * (1) + memWidth - 2];
 	p[memWidth * (memHeight - 1) + memWidth - 1] = p[memWidth * (1) + 1];
 
+#if !defined(USE_ZEROCOPY_MEMORY)
 	CHECK(cudaMemcpy(param->devMatSrc, param->hostMatSrc, memWidth * memHeight * sizeof(int), cudaMemcpyHostToDevice));
+#endif
 
 	/*** operate logic without border check ***/
 	loop_2 << < grid, block >> > (param->devMatDst, param->devMatSrc, width, height, memWidth, memHeight);
 	CHECK(cudaDeviceSynchronize());
 
+#if !defined(USE_ZEROCOPY_MEMORY)
 	CHECK(cudaMemcpy(param->hostMatDst + (memWidth * 1) + MEMORY_MARGIN, param->devMatDst + (memWidth * 1) + MEMORY_MARGIN, memWidth * height * sizeof(int), cudaMemcpyDeviceToHost));
-
+#endif
 	swapMat(param);
 	// hostMatSrc is ready to be displayed
 }

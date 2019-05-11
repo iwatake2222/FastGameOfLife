@@ -101,6 +101,7 @@ void process_2_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 	p[memWidth * (memHeight - 1) + memWidth - 1] = p[memWidth * (1) + 1];
 
 	/* copy border line data at first to simplyfy logic of each stream (no need to consider border line) */
+#if !defined(USE_ZEROCOPY_MEMORY)
 	for (int i = 0; i < NUM_STREAM; i++) {
 		int offsetFirstLine = (i * heightStream) * memWidth;
 		CHECK(cudaMemcpy(param->devMatSrc + offsetFirstLine, param->hostMatSrc + offsetFirstLine, memWidth * sizeof(int), cudaMemcpyHostToDevice));
@@ -111,6 +112,7 @@ void process_2_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 			CHECK(cudaMemcpy(param->devMatSrc + (memHeight - 1) * memWidth, param->hostMatSrc + (memHeight - 1) * memWidth, memWidth * sizeof(int), cudaMemcpyHostToDevice));
 		}
 	}
+#endif
 
 	/* create stream(copy(h2d), kernel, copy(d2h)) */
 	for (int i = 0; i < NUM_STREAM; i++) {
@@ -118,9 +120,13 @@ void process_2_stream(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 		int offsetY = i * heightStream;
 		int copyLine = heightStream;
 		if (offsetY + heightStream > memHeight) copyLine = memHeight - offsetY;
+#if !defined(USE_ZEROCOPY_MEMORY)
 		CHECK(cudaMemcpyAsync(param->devMatSrc + offsetY * memWidth, param->hostMatSrc + offsetY * memWidth, memWidth * copyLine * sizeof(int), cudaMemcpyHostToDevice, *pStream));
+#endif
 		loop_2_stream << < grid, block, 0, *pStream >> > (param->devMatDst, param->devMatSrc, width, height, memWidth, memHeight, offsetY);
+#if !defined(USE_ZEROCOPY_MEMORY)
 		CHECK(cudaMemcpyAsync(param->hostMatDst + offsetY * memWidth, param->devMatDst + offsetY * memWidth, memWidth * copyLine * sizeof(int), cudaMemcpyDeviceToHost, *pStream));
+#endif
 	}
 
 	for (int i = 0; i < NUM_STREAM; i++) {

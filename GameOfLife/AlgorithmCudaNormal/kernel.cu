@@ -20,15 +20,29 @@ void cudaInitialize(ALGORITHM_CUDA_NORMAL_PARAM *param, int width, int height)
 	NUM_STREAM = height / BLOCK_SIZE_H;
 	if (NUM_STREAM > NUM_STREAM_MAX) NUM_STREAM = NUM_STREAM_MAX;
 
-	CHECK(cudaMalloc((void**)&param->devMatSrc, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int)));
-	CHECK(cudaMalloc((void**)&param->devMatDst, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int)));
 
-#if 1
+#if defined(USE_ZEROCOPY_MEMORY)
+	#if defined(USE_PINNED_MEMORY)
+	CHECK(cudaMallocHost((void**)&param->hostMatSrc, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int), cudaHostAllocMapped));
+	CHECK(cudaMallocHost((void**)&param->hostMatDst, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int), cudaHostAllocMapped));
+	#else
+	CHECK(cudaHostAlloc((void**)&param->hostMatSrc, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int), cudaHostAllocMapped));
+	CHECK(cudaHostAlloc((void**)&param->hostMatDst, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int), cudaHostAllocMapped));
+	#endif
+#elif defined(USE_PINNED_MEMORY)
 	CHECK(cudaMallocHost((void**)&param->hostMatSrc, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int)));
 	CHECK(cudaMallocHost((void**)&param->hostMatDst, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int)));
 #else
 	param->hostMatSrc = new int[(width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN)];
 	param->hostMatDst = new int[(width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN)];
+#endif
+
+#ifdef USE_ZEROCOPY_MEMORY
+	CHECK(cudaHostGetDevicePointer((void**)&param->devMatSrc, (void*)param->hostMatSrc, 0));
+	CHECK(cudaHostGetDevicePointer((void**)&param->devMatDst, (void*)param->hostMatDst, 0));
+#else
+	CHECK(cudaMalloc((void**)&param->devMatSrc, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int)));
+	CHECK(cudaMalloc((void**)&param->devMatDst, (width + 2 * MEMORY_MARGIN) * (height + 2 * MEMORY_MARGIN) * sizeof(int)));
 #endif
 
 	param->isMatrixUpdated = 1;
@@ -49,10 +63,12 @@ void cudaFinalize(ALGORITHM_CUDA_NORMAL_PARAM *param)
 		delete stream;
 	}
 
+#if !defined(USE_ZEROCOPY_MEMORY)
 	CHECK(cudaFree(param->devMatSrc));
 	CHECK(cudaFree(param->devMatDst));
+#endif
 
-#if 1
+#if defined(USE_PINNED_MEMORY) || defined(USE_ZEROCOPY_MEMORY)
 	CHECK(cudaFreeHost(param->hostMatSrc));
 	CHECK(cudaFreeHost(param->hostMatDst));
 #else
