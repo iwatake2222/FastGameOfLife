@@ -46,7 +46,7 @@ In Visual Studio, you might need to `build` Cuda library (AlgorithmCudaNormal, A
 cd LifeGameFast
 mkdir build && cd build
 cmake ..
-make
+make -j4
 cd GameOfLife
 ./GameOfLife &
 ```

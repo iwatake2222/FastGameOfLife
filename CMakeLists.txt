@@ -12,6 +12,10 @@ else()
 	set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14")
 	set(CMAKE_CXX_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
 	set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
+
+	if(NOT CMAKE_BUILD_TYPE)
+		set(CMAKE_BUILD_TYPE "Release")
+	endif()
 endif()
 
 
@@ -25,8 +29,3 @@ endif()
 # Include projects
 add_subdirectory(${PROJECT_SOURCE_DIR}/GameOfLife GameOfLife)
 
-
-### Note
-## for Raspberry Pi
-# sudo apt-get install freeglut3-dev
-# sudo apt-get install libx11-dev
