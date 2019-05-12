@@ -39,7 +39,7 @@ The following library/app are needed:
 6. Open `GameOfLife.sln` and set `GameOfLife` project as a startup project, then build and run!!
 
 Note:
-In Visual Studio, you might need to `build` Cuda library (AlgorithmCudaNormal, AlgorithmCudaGroup projects) individually, for some reasons. Otherwise, the libray might not be updated.
+In Visual Studio, you might need to `build` Cuda library (AlgorithmCudaNormal, AlgorithmCudaGroup projects) individually, for some reasons. Otherwise, the libray won't be updated.
 
 ### Linux
 ```
