@@ -18,6 +18,9 @@ set(SOURCES
 	World.cpp
 	WorldContext.cpp
 	WorldView.cpp
+	Person.cpp
+	LogicVirusNormal.cpp
+	AnalViewVirus.cpp
 )
 
 set(HEADERS
@@ -40,6 +43,9 @@ set(HEADERS
 	World.h
 	WorldContext.h
 	WorldView.h
+	Person.h
+	LogicVirusNormal.h
+	AnalViewVirus.h
 )
 
 if(ENABLE_CUDA)

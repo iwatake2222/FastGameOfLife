@@ -7,6 +7,8 @@
 #include "ControllerView.h"
 #include "AnalViewAge.h"
 #include "AnalViewGroup.h"
+#include "AnalViewVirus.h"
+
 
 AnalView::AnalView(WorldContext* pContext)
 {
@@ -155,7 +157,8 @@ IView* AnalView::createAppropreateAnalView(WorldContext* pContext)
 	case ALGORITHM_NORMAL_NON_TORUS:
 	case ALGORITHM_NORMAL_NON_TORUS_MP:
 	default:
-		return new AnalViewAge(pContext);
+		//return new AnalViewAge(pContext);
+		return new AnalViewVirus(pContext);
 	case ALGORITHM_GROUP_MP:
 	case ALGORITHM_GROUP_CUDA:
 		return new AnalViewGroup(pContext);

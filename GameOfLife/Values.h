@@ -15,6 +15,13 @@ static const double COLOR_3D_ALIVE_GROUP_B[] = { 0.0, 2.0, 0.2 };
 static const double COLOR_3D_ALIVE_GROUP_A75[] = { 1.5, 0.5, 0.2 };
 static const double COLOR_3D_ALIVE_GROUP_HALF[] = { 1.0, 1.0, 0.2 };
 static const double COLOR_3D_ALIVE_GROUP_B75[] = { 0.5, 1.5, 0.2 };
+static const double COLOR_3D_VIRUS_NONE[] = { 0.0, 0.0, 0.0 };
+static const double COLOR_3D_VIRUS_HEALTHY[] = { 1.0, 1.0, 1.0 };
+static const double COLOR_3D_VIRUS_INFECTED[] = { 1.0, 0.2, 0.2 };
+static const double COLOR_3D_VIRUS_ONSET[] = { 1.0, 0.5, 0.5 };
+static const double COLOR_3D_VIRUS_CONTAGIUS[] = { 1.0, 1.0, 0.2 };
+static const double COLOR_3D_VIRUS_IMMUNIZED[] = { 0.2, 1.0, 0.2 };
+
 
 typedef enum {
 	ALGORITHM_NORMAL = 0,
@@ -29,11 +36,11 @@ typedef enum {
 	ALGORITHM_AUTO = 99,	// from controller view
 } ALGORITHM;
 
-static const int DEFAULT_WORLD_WIDTH = 1024;
-static const int DEFAULT_WORLD_HEIGHT = 1024;
+static const int DEFAULT_WORLD_WIDTH = 256;
+static const int DEFAULT_WORLD_HEIGHT = 256;
 //static const int DEFAULT_WORLD_WIDTH = 512;
 //static const int DEFAULT_WORLD_HEIGHT = 512;
-static const int DEFAULT_CELLS_DENSITY = 20;
+static const int DEFAULT_CELLS_DENSITY = 10;
 static const int DEFAULT_DRAW_INTERVAL = 1;
 static const int DEFAULT_SKIP_NUM = 1;
 static const ALGORITHM DEFAULT_ALGORITHM = ALGORITHM_NORMAL;

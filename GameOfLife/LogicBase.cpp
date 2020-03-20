@@ -13,6 +13,8 @@
 #include "LogicGroupCuda.h"
 #endif
 
+#include "LogicVirusNormal.h"
+
 LogicBase::LogicBase(int worldWidth, int worldHeight)
 {
 	WORLD_WIDTH = worldWidth;
@@ -30,6 +32,7 @@ LogicBase::LogicBase(int worldWidth, int worldHeight)
 	m_info.calcTime = 999;
 	m_info.generation = 1;
 	m_lastRetrievedGenration = m_info.generation;
+
 }
 
 LogicBase::~LogicBase()
@@ -229,7 +232,8 @@ ILogic* LogicBase::generateLogic(int algorithm, int width, int height)
 {
 	switch (algorithm) {
 	case ALGORITHM_NORMAL:
-		return new LogicNormal(width, height);
+		//return new LogicNormal(width, height);
+		return new LogicVirusNormal(width, height);
 	case ALGORITHM_NORMAL_MP:
 		return new LogicNormalMP(width, height);
 	case ALGORITHM_NORMAL_NON_TORUS:
